@@ -109,10 +109,9 @@ timeline.FindArtifact("order", finder).MarkReadonly()
 > web SQL finder and all three Azure finders hand back references teardown can delete. Against a shared
 > or live store, reach for `MarkReadonly()` rather than trusting the finder.
 
-`MarkReadonly()` is the decision you can rely on, because nothing downstream can overrule it. A
-reference type separately reports whether it *can* be deconstructed - `FileArtifactReference.Observed()`
-still clears that - but that is the reference author's answer to a different question: can this be
-deleted, not may it be.
+`MarkReadonly()` is the decision you can rely on, and it is the only one there is: no reference type
+offers a competing opt-out. A reference still reports whether it *can* be deconstructed, but that answers
+the reference author's question - is there enough information to delete this - not yours.
 
 Deleting data you merely looked at is not tidying up.
 

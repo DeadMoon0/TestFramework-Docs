@@ -43,12 +43,12 @@ Underneath that choice, a reference reports whether it *can* be deconstructed at
 different questions - `CanDeconstruct` is "is there enough information to delete this?", while
 `MarkReadonly()` is "may it be deleted?" - and teardown needs a yes from both:
 
-Nearly every reference can: it was handed the key, path or coordinates it would need.
+Every shipped reference can, bar one conditional case: each is handed the key, path or coordinates it
+would need, and none of them carries a policy opt-out of its own any more.
 
 | Reference | Deconstructable |
 |---|---|
 | `FileArtifactReference(path)` | yes |
-| `FileArtifactReference(path).Observed()` | no - the one reference-level opt-out left |
 | `SqlRowArtifactReference` (web) | yes - a key value is required |
 | `SqlRowArtifactReference` (azure) | yes - a primary key is required |
 | `TableStorageEntityArtifactReference` | yes - table, partition key and row key are all required |

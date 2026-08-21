@@ -104,7 +104,7 @@ A seeded row is owned, so teardown removes it.
 > Storage finders do, so a found item there **is deleted** when the run ends.
 >
 > Before pointing any timeline at data you did not create, read
-> [ownership lives on the reference](artifacts.md#ownership-decides-teardown---and-ownership-lives-on-the-reference).
+> [ownership lives on the reference](artifacts.md#teardown-deletes---unless-you-say-otherwise).
 
 ## Two sources of truth beat one
 
