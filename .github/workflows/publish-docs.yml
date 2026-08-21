@@ -1,0 +1,227 @@
+name: Publish documentation
+
+# Builds the site, captures what every example actually prints, publishes to GitHub Pages, and commits
+# the captured output back to main under a tag.
+#
+# ORDER MATTERS. The capture runs before docfx, not after: the output panels on the chapter pages are
+# read from showroom-output.json at generation time, so building first would publish the previous run's
+# panels alongside this run's code.
+#
+#     discover  ->  capture (one job per lane, in parallel)  ->  publish (merge, build, commit, tag)  ->  deploy
+#
+# WHY THIS DOES NOT LOOP. The publish job pushes to main, which is also this workflow's trigger. Three
+# independent guards, any one of which would be enough:
+#   1. Pushes made with GITHUB_TOKEN do not start new workflow runs. This is the real guard.
+#   2. `paths-ignore` below excludes the only file this workflow commits.
+#   3. Tags are not a trigger at all - only pushes to the `main` branch are.
+#
+# WHAT GETS COMMITTED. Only showroom-output.json, and only what an example printed and whether it passed.
+# The timings this run measured stay in run-data/, which is git-ignored: a duration is true of one run on
+# one machine, so publishing it into the repository would mean a commit after every run that says nothing.
+# The site still shows the exact figures - it is built in the same run that measured them.
+#
+# CI IS THE SOURCE OF TRUTH for captured output. Merge-ShowroomOutput.ps1 replaces the committed file
+# rather than merging into it, so a chapter this pipeline could only skip is published as skipped. That
+# is deliberate: the alternative keeps a passing panel alive after the environment that produced it is
+# gone, and a reader cannot tell the difference.
+#
+# TWO THINGS MUST BE TRUE BEFORE THIS CAN GO GREEN, neither of them a fault in this pipeline:
+#   * The TestFramework package chain must be on nuget.org. Build-Docs.ps1 restores from the public
+#     feed, and the Showroom deliberately pins published versions only.
+#   * The Showroom submodule must point at a commit whose chapters carry //doc: narration. Until then,
+#     use the workflow_dispatch input below to downgrade that from an error to a warning.
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      # The file this workflow itself commits.
+      - 'showroom-output.json'
+  workflow_dispatch:
+    inputs:
+      allow_missing_narration:
+        description: 'Treat un-narrated chapters as a warning instead of an error'
+        type: boolean
+        default: false
+      commit_output:
+        description: 'Commit the captured output back to main'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: publish-docs
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    name: discover lanes
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    outputs:
+      lanes: ${{ steps.lanes.outputs.lanes }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: List the lanes
+        id: lanes
+        run: |
+          set -euo pipefail
+          # The generator answers this, rather than the shell globbing directories, so that what
+          # counts as a lane or a chapter is defined in exactly one place.
+          lanes="$(dotnet run --project tools/ShowroomDocs/ShowroomDocs.csproj -c Release -- \
+            --showroom Modules/TestFramework-Showroom --list-lanes)"
+          echo "$lanes"
+          if [ "$lanes" = "[]" ]; then
+            echo "::error::No chapters found in the Showroom submodule. Is it checked out?"
+            exit 1
+          fi
+          echo "lanes=$lanes" >> "$GITHUB_OUTPUT"
+
+  capture:
+    name: capture ${{ matrix.lane }}
+    needs: discover
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      # A lane that cannot start its containers must not stop the lanes that can: its skip reasons are
+      # themselves publishable, and they are what tells a reader the prerequisite.
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.lanes) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Capture ${{ matrix.lane }} (${{ matrix.chapters }} chapters)
+        run: |
+          pwsh ./Capture-ShowroomOutput.ps1 \
+            -ShowroomPath Modules/TestFramework-Showroom \
+            -Lane '${{ matrix.lane }}' \
+            -Fresh \
+            -OutputFile "run-data/captures/${{ matrix.lane }}.json"
+
+      - name: Upload the capture
+        uses: actions/upload-artifact@v4
+        with:
+          name: capture-${{ matrix.lane }}
+          path: run-data/captures/${{ matrix.lane }}.json
+          if-no-files-found: error
+
+  publish:
+    name: publish
+    needs: capture
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    outputs:
+      tag: ${{ steps.commit.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Download every lane capture
+        uses: actions/download-artifact@v4
+        with:
+          pattern: capture-*
+          path: run-data/captures
+
+      - name: Merge the captures
+        # Writes two files: showroom-output.json (content, committed below) and
+        # run-data/showroom-measurements.json (timings, never committed - they are true of this run only).
+        run: pwsh ./Merge-ShowroomOutput.ps1 -Path run-data/captures
+
+      - name: Build the site
+        run: |
+          # Strict by default: a chapter with no narration fails the build rather than publishing as a
+          # code dump. The dispatch input exists for the stretch while chapters are still being written.
+          if [ "${{ inputs.allow_missing_narration }}" = "true" ]; then
+            pwsh ./Build-Docs.ps1 -AllowMissingNarration
+          else
+            pwsh ./Build-Docs.ps1
+          fi
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Commit the captured output
+        id: commit
+        if: github.event_name == 'push' || inputs.commit_output
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet -- showroom-output.json; then
+            echo "Captured output is unchanged; nothing to commit."
+            exit 0
+          fi
+
+          # Date plus run number: chronological, and a second run on the same day gets its own tag.
+          tag="Docu-v$(date -u +%Y.%m.%d).${GITHUB_RUN_NUMBER}"
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          git add showroom-output.json
+          git commit -m "Capture example output ($tag)"
+          git tag "$tag"
+
+          # Pushed with GITHUB_TOKEN, which by design does not start another workflow run.
+          git push origin HEAD:main
+          git push origin "$tag"
+
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "::notice::Committed captured output as $tag"
+
+  deploy:
+    name: deploy
+    needs: publish
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
