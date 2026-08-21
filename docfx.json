@@ -1,0 +1,106 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": [
+            "TestFramework*.dll"
+          ],
+          "src": "staging/api"
+        }
+      ],
+      "references": [
+        {
+          "files": [
+            "**/*.dll"
+          ],
+          "src": "staging/refs"
+        }
+      ],
+      "dest": "api",
+      "namespaceLayout": "nested",
+      "memberLayout": "samePage",
+      "includePrivateMembers": false,
+      "filter": "filterConfig.yml",
+      "disableGitFeatures": false
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "api/**.yml",
+          "api/**.md"
+        ]
+      },
+      {
+        "exclude": [
+          "guide/includes/**"
+        ],
+        "files": [
+          "index.md",
+          "toc.yml",
+          "learn/**.md",
+          "learn/**/toc.yml",
+          "guide/**.md",
+          "guide/**/toc.yml",
+          "examples/**.md",
+          "examples/**/toc.yml"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "assets/**"
+        ]
+      },
+      {
+        "files": [
+          "Icon.svg",
+          "Icon.png"
+        ],
+        "src": "Modules/TestFramework-Common/Assets",
+        "dest": "assets"
+      }
+    ],
+    "overwrite": [
+      {
+        "files": [
+          "overwrites/**.md"
+        ]
+      }
+    ],
+    "output": "_site",
+    "template": [
+      "default",
+      "modern",
+      "template"
+    ],
+    "globalMetadata": {
+      "_appName": "TestFramework",
+      "_appTitle": "TestFramework",
+      "_appFooter": "TestFramework documentation. MIT licensed.",
+      "_enableSearch": true,
+      "_disableContribution": false,
+      "_gitContribute": {
+        "repo": "https://github.com/DeadMoon0/TestFramework-Docu",
+        "branch": "main"
+      },
+      "_appLogoPath": "assets/Icon.svg",
+      "_appFaviconPath": "assets/Icon.png"
+    },
+    "markdownEngineProperties": {
+      "markdigExtensions": [
+        "attributes"
+      ]
+    },
+    "fileMetadata": {
+      "_disableContribution": {
+        "examples/**": true,
+        "api/**": true
+      }
+    }
+  }
+}

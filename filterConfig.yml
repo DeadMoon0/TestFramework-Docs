@@ -1,0 +1,11 @@
+# The reference stays complete: a reference that hides public API is a worse reference. What is
+# filtered here is noise a consumer can never name, not API we would rather they did not use.
+#
+# Where the public surface needs *explanation* - consumer-first API, extension-author API, or
+# builder scaffolding - that is said in overwrites/, next to the namespace it describes.
+apiRules:
+  - exclude:
+      uidRegex: ^System\.Runtime\.CompilerServices
+  - exclude:
+      hasAttribute:
+        uid: System.Runtime.CompilerServices.CompilerGeneratedAttribute

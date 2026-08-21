@@ -1,0 +1,456 @@
+/*
+  Site styling on top of docfx's modern template.
+
+  The palette is the DebugUI's, because the documentation and the tool should not look like two
+  unrelated products. Three ideas are carried over from Theme.xaml rather than invented here:
+
+    * Surfaces are layered by wash, not by hue. Every panel is a slightly lighter version of the
+      same neutral, which keeps depth readable without anything competing with the content.
+    * Separation is a hairline at low alpha, not a drawn border.
+    * There is exactly one accent, and it means "active, selected, or the way on". The lifecycle
+      colours are not accents - they say what became of something.
+
+  Both themes are defined. The template's own light/dark/auto toggle keeps working; nothing here
+  forces a choice on the reader.
+*/
+
+/* --- Tokens: light, the same system with the washes going the other way ------------------------ */
+:root,
+[data-bs-theme="light"] {
+    --tf-sunken: #f7f7f6;
+    --tf-raised: #ffffff;
+    --tf-hover: #f0f0ef;
+    --tf-card: #ffffff;
+    --tf-divider: #e8e8e6;
+    --tf-edge: rgba(0, 0, 0, 0.11);
+    --tf-edge-strong: rgba(0, 0, 0, 0.26);
+    --tf-text: #1b1b1a;
+    --tf-text-2: #5f5f5c;
+    --tf-text-3: #8a8a86;
+    --tf-accent: #1f5fd8;
+    --tf-accent-wash: rgba(31, 95, 216, 0.09);
+    --tf-ok: #1c7a4e;
+    --tf-ok-wash: rgba(28, 122, 78, 0.1);
+    --tf-warn: #8a5205;
+    --tf-warn-wash: rgba(138, 82, 5, 0.1);
+    --tf-err: #b32020;
+    --tf-err-wash: rgba(179, 32, 32, 0.09);
+
+    --bs-body-bg: var(--tf-sunken);
+    --bs-body-color: var(--tf-text);
+    --bs-emphasis-color: #000000;
+    --bs-secondary-color: var(--tf-text-2);
+    --bs-tertiary-color: var(--tf-text-3);
+    --bs-secondary-bg: var(--tf-raised);
+    --bs-tertiary-bg: var(--tf-raised);
+    --bs-border-color: var(--tf-edge);
+    --bs-link-color: var(--tf-accent);
+    --bs-link-hover-color: #143f93;
+    --bs-code-color: var(--tf-text);
+}
+
+/* --- Tokens: dark, the DebugUI's own values. Declared after light, and qualified with :root,
+       because both selectors otherwise carry the same weight and the later one would simply win. ---------------------------------------------------- */
+:root[data-bs-theme="dark"] {
+    --tf-sunken: #171717;
+    --tf-raised: #232323;
+    --tf-hover: #2c2c2c;
+    --tf-card: #323232;
+    --tf-divider: #151515;
+    --tf-edge: rgba(255, 255, 255, 0.12);
+    --tf-edge-strong: rgba(255, 255, 255, 0.3);
+    --tf-text: #ededed;
+    --tf-text-2: #9a9a9a;
+    --tf-text-3: #6a6a6a;
+    --tf-accent: #4680fc;
+    --tf-accent-wash: rgba(70, 128, 252, 0.14);
+    --tf-ok: #62c98f;
+    --tf-ok-wash: rgba(98, 201, 143, 0.14);
+    --tf-warn: #fcaf62;
+    --tf-warn-wash: rgba(252, 175, 98, 0.14);
+    --tf-err: #fc4646;
+    --tf-err-wash: rgba(252, 70, 70, 0.14);
+
+    --bs-body-bg: var(--tf-sunken);
+    --bs-body-color: var(--tf-text);
+    --bs-emphasis-color: #ffffff;
+    --bs-secondary-color: var(--tf-text-2);
+    --bs-tertiary-color: var(--tf-text-3);
+    --bs-secondary-bg: var(--tf-raised);
+    --bs-tertiary-bg: var(--tf-raised);
+    --bs-border-color: var(--tf-edge);
+    --bs-link-color: var(--tf-accent);
+    --bs-link-hover-color: #7ba4fd;
+    --bs-code-color: var(--tf-text);
+}
+
+:root {
+    --tf-radius: 4px;
+    --tf-radius-panel: 8px;
+    --tf-mono: "Cascadia Mono", "Cascadia Code", Consolas, "Courier New", ui-monospace, monospace;
+}
+
+/* --- Typography -------------------------------------------------------------------------------- */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    background-color: var(--tf-sunken);
+    color: var(--tf-text);
+}
+
+/* Weight 500 rather than bold: at these sizes bold reads as shouting against a flat surface. */
+h1, h2, h3, h4, h5, h6,
+article h1, article h2, article h3, article h4 {
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--tf-text);
+}
+
+article h1 { font-size: 1.85rem; margin-bottom: 1rem; }
+article h2 {
+    font-size: 1.3rem;
+    margin-top: 2.4rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid var(--tf-edge);
+}
+article h3 { font-size: 1.08rem; margin-top: 1.8rem; }
+
+article p, article li { color: var(--tf-text); }
+
+a { text-decoration: none; }
+article a:hover { text-decoration: underline; text-underline-offset: 0.15em; }
+
+/* --- The shell: navbar, sidebar, rails --------------------------------------------------------- */
+header .navbar {
+    background-color: var(--tf-raised) !important;
+    border-bottom: 1px solid var(--tf-edge);
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+}
+
+.navbar-brand {
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--tf-text) !important;
+}
+
+/*
+  The shared icon is a 100x100 SVG with no intrinsic constraint, so left alone it renders at full
+  size and drags the navbar to 110px tall. Size it to the brand text instead.
+*/
+.navbar-brand img,
+.navbar-brand .svg {
+    height: 22px;
+    width: auto;
+    vertical-align: -0.24em;
+    margin-right: 0.4rem;
+}
+
+/* The shared icon is drawn light, for a dark window. Bring it down for the light theme. */
+[data-bs-theme="light"] .navbar-brand img,
+:root:not([data-bs-theme="dark"]) .navbar-brand img {
+    filter: brightness(0.28);
+}
+
+.navbar-nav .nav-link {
+    color: var(--tf-text-2) !important;
+    font-size: 0.94rem;
+    padding-left: 0.7rem !important;
+    padding-right: 0.7rem !important;
+    border-bottom: 2px solid transparent;
+}
+
+.navbar-nav .nav-link:hover { color: var(--tf-text) !important; }
+
+.navbar-nav .nav-link.active {
+    color: var(--tf-text) !important;
+    border-bottom-color: var(--tf-accent);
+}
+
+.sidetoc {
+    background-color: var(--tf-sunken);
+    border-right: 1px solid var(--tf-edge);
+}
+
+/* TOC rows are bordered rows, not cards: dense lists read better without per-item chrome. */
+.toc .nav-link,
+nav.toc .nav-link {
+    color: var(--tf-text-2);
+    font-size: 0.9rem;
+    padding: 0.22rem 0.55rem;
+    border-radius: var(--tf-radius);
+}
+
+.toc .nav-link:hover {
+    color: var(--tf-text);
+    background-color: var(--tf-hover);
+}
+
+.toc .nav-link.active {
+    color: var(--tf-accent);
+    background-color: var(--tf-accent-wash);
+    font-weight: 500;
+}
+
+/* Section headers inside the TOC are structure, not destinations. */
+.toc .nav-item > span,
+.toc h5 {
+    color: var(--tf-text-3);
+    font-size: 0.78rem;
+    text-transform: none;
+    letter-spacing: 0.02em;
+}
+
+#affix .nav-link,
+.affix .nav-link {
+    color: var(--tf-text-3);
+    font-size: 0.85rem;
+    border-left: 1px solid var(--tf-edge);
+    border-radius: 0;
+    padding-left: 0.7rem;
+}
+
+#affix .nav-link.active,
+.affix .nav-link.active {
+    color: var(--tf-accent);
+    border-left-color: var(--tf-accent);
+}
+
+.border-bottom, .border-top, .border-start, .border-end { border-color: var(--tf-edge) !important; }
+
+/* --- Search and controls ----------------------------------------------------------------------- */
+#search-query,
+input.form-control,
+.form-control {
+    background-color: var(--tf-sunken);
+    border: 1px solid var(--tf-edge);
+    border-radius: var(--tf-radius);
+    color: var(--tf-text);
+    font-size: 0.9rem;
+}
+
+.form-control:focus {
+    background-color: var(--tf-sunken);
+    color: var(--tf-text);
+    border-color: var(--tf-accent);
+    box-shadow: 0 0 0 1px var(--tf-accent);
+}
+
+.btn, .btn-outline-secondary {
+    border-radius: var(--tf-radius);
+    border-color: var(--tf-edge-strong);
+    color: var(--tf-text-2);
+}
+
+.btn:hover, .btn-outline-secondary:hover {
+    background-color: var(--tf-hover);
+    color: var(--tf-text);
+    border-color: var(--tf-edge-strong);
+}
+
+.dropdown-menu {
+    background-color: var(--tf-raised);
+    border: 1px solid var(--tf-edge);
+    border-radius: var(--tf-radius-panel);
+}
+
+.dropdown-item { color: var(--tf-text-2); }
+.dropdown-item:hover { background-color: var(--tf-hover); color: var(--tf-text); }
+.dropdown-item.active { background-color: var(--tf-accent-wash); color: var(--tf-accent); }
+
+/* --- Code -------------------------------------------------------------------------------------- */
+code, pre, kbd, samp { font-family: var(--tf-mono); }
+
+/* Inline code is a token in a sentence, so it sits one wash above the page and no more. */
+:not(pre) > code {
+    background-color: var(--tf-card);
+    border: 1px solid var(--tf-edge);
+    border-radius: var(--tf-radius);
+    padding: 0.08em 0.34em;
+    font-size: 0.86em;
+    color: var(--tf-text);
+}
+
+pre {
+    background-color: var(--tf-raised);
+    border: 1px solid var(--tf-edge);
+    border-radius: var(--tf-radius-panel);
+    padding: 0.85rem 1rem;
+    font-size: 0.83rem;
+    line-height: 1.65;
+    overflow-x: auto;
+}
+
+pre > code {
+    background: none;
+    border: 0;
+    padding: 0;
+    font-size: inherit;
+}
+
+/* The template's copy button, kept quiet until the block is hovered. */
+.code-header, .sample-response {
+    background-color: var(--tf-raised);
+    border-color: var(--tf-edge);
+}
+
+/* --- Tables ------------------------------------------------------------------------------------ */
+table.table, article table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--tf-text);
+    border-collapse: collapse;
+    font-size: 0.94rem;
+}
+
+article table th {
+    color: var(--tf-text-2);
+    font-weight: 500;
+    font-size: 0.85rem;
+    border-bottom: 1px solid var(--tf-edge-strong) !important;
+}
+
+article table td { border-top: 1px solid var(--tf-edge) !important; }
+article table tbody tr:hover > * { background-color: var(--tf-hover); }
+
+/* --- Alerts: a left bar in the meaning's own colour, not a filled box -------------------------- */
+.alert {
+    border: 1px solid var(--tf-edge);
+    border-left: 3px solid var(--tf-accent);
+    border-radius: 0 var(--tf-radius-panel) var(--tf-radius-panel) 0;
+    background-color: var(--tf-raised);
+    color: var(--tf-text);
+    padding: 0.7rem 1rem;
+}
+
+.alert h5 { color: var(--tf-text-2); font-size: 0.8rem; letter-spacing: 0.03em; }
+.alert-info { border-left-color: var(--tf-accent); background-color: var(--tf-accent-wash); }
+.alert-warning { border-left-color: var(--tf-warn); background-color: var(--tf-warn-wash); }
+.alert-danger { border-left-color: var(--tf-err); background-color: var(--tf-err-wash); }
+.alert-success { border-left-color: var(--tf-ok); background-color: var(--tf-ok-wash); }
+
+blockquote {
+    border-left: 3px solid var(--tf-edge-strong);
+    padding-left: 1rem;
+    color: var(--tf-text-2);
+}
+
+/* --- Prerequisite badges ----------------------------------------------------------------------- */
+.tf-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0.3rem 0 1.3rem;
+}
+
+.tf-badge {
+    display: inline-block;
+    padding: 0.1rem 0.62rem;
+    border: 1px solid var(--tf-edge);
+    border-radius: 999px;
+    background-color: var(--tf-raised);
+    color: var(--tf-text-2);
+    font-size: 0.78rem;
+    line-height: 1.6;
+    white-space: nowrap;
+}
+
+/* Lifecycle colours, used here for what a chapter needs from the machine. */
+.tf-badge-ok {
+    color: var(--tf-ok);
+    background-color: var(--tf-ok-wash);
+    border-color: transparent;
+}
+
+.tf-badge-warn {
+    color: var(--tf-warn);
+    background-color: var(--tf-warn-wash);
+    border-color: transparent;
+}
+
+/* --- Output panels ----------------------------------------------------------------------------- */
+details.tf-output {
+    margin: 0 0 1.5rem;
+    border: 1px solid var(--tf-edge);
+    border-radius: var(--tf-radius-panel);
+    background-color: var(--tf-raised);
+    overflow: hidden;
+}
+
+details.tf-output > summary {
+    padding: 0.45rem 0.85rem;
+    cursor: pointer;
+    font-size: 0.86rem;
+    color: var(--tf-text-2);
+    user-select: none;
+    list-style: none;
+}
+
+details.tf-output > summary::-webkit-details-marker { display: none; }
+
+/* A disclosure triangle drawn as one glyph, rotated when open - the same trick the tool uses. */
+details.tf-output > summary::before {
+    content: "\25B8";
+    display: inline-block;
+    width: 1em;
+    color: var(--tf-text-3);
+    transition: transform 120ms ease-out;
+}
+
+details.tf-output[open] > summary::before { transform: rotate(90deg); }
+details.tf-output > summary:hover { color: var(--tf-text); background-color: var(--tf-hover); }
+details.tf-output[open] > summary { border-bottom: 1px solid var(--tf-edge); }
+
+details.tf-output > :not(summary) {
+    margin-left: 0.85rem;
+    margin-right: 0.85rem;
+}
+
+details.tf-output > pre {
+    background-color: var(--tf-sunken);
+    margin-bottom: 0.85rem;
+}
+
+/* The run's debug view draws box art, which only lines up when the block keeps its own width. */
+details.tf-output pre > code.lang-console {
+    font-variant-ligatures: none;
+    white-space: pre;
+    tab-size: 4;
+    font-size: 0.76rem;
+    line-height: 1.45;
+    color: var(--tf-text-2);
+}
+
+/* A measured figure is only as good as the machine it came from, so the caption stating that machine
+   is quiet but always present. */
+p.tf-measured {
+    margin: 0 0 0.85rem;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: var(--tf-text-3);
+}
+
+/* --- Landing page ------------------------------------------------------------------------------ */
+article h1:first-child { padding-top: 0.4rem; }
+
+/* The routing table on the landing page is navigation, so its rows behave like rows. */
+article table td a { font-weight: 500; }
+
+/* --- Pagination and footer --------------------------------------------------------------------- */
+.pagination, .next-article, .prev-article { font-size: 0.9rem; }
+
+footer, .footer {
+    background-color: var(--tf-raised) !important;
+    border-top: 1px solid var(--tf-edge);
+    color: var(--tf-text-3);
+    font-size: 0.85rem;
+}
+
+/* --- Mermaid ----------------------------------------------------------------------------------- */
+.mermaid {
+    background-color: var(--tf-raised);
+    border: 1px solid var(--tf-edge);
+    border-radius: var(--tf-radius-panel);
+    padding: 0.9rem;
+    overflow-x: auto;
+}

@@ -427,3 +427,15 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# --- Documentation site ---------------------------------------------------------
+# Everything below is produced by Build-Docs.ps1 and must never be committed:
+# the site output, the staged assemblies it reflects, and the generated pages.
+_site/
+staging/
+# Captures and timings: true of one run on one machine, so never committed.
+run-data/
+api/*
+!api/index.md
+examples/
+guide/includes/versions.md

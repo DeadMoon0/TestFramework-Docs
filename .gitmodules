@@ -1,0 +1,6 @@
+[submodule "Modules/TestFramework-Common"]
+	path = Modules/TestFramework-Common
+	url = https://github.com/DeadMoon0/TestFramework-Common
+[submodule "Modules/TestFramework-Showroom"]
+	path = Modules/TestFramework-Showroom
+	url = https://github.com/DeadMoon0/TestFramework-Showroom

@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<!--
+	  The version stamp for the whole site.
+
+	  This project contains no code. Its only job is to name the package versions the documentation
+	  describes, so that "which version is this site about?" has exactly one answer. Build-Docs.ps1
+	  restores it, then reads the API surface out of the restored assemblies - meaning the site can
+	  only ever document API that a consumer is able to install.
+
+	  Documenting a newer release is a one-line edit here.
+	-->
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<IsPackable>false</IsPackable>
+		<!-- No compile items: the restore graph is the point, not a build output. -->
+		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+		<NoWarn>NU1701</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup Label="Documented packages">
+		<PackageReference Include="TestFramework.Core" Version="0.2.0" />
+		<PackageReference Include="TestFramework.Config" Version="0.2.0" />
+		<PackageReference Include="TestFramework.Simple" Version="0.2.0" />
+		<PackageReference Include="TestFramework.Azure" Version="0.2.0" />
+		<PackageReference Include="TestFramework.LocalIO" Version="0.2.0" />
+		<PackageReference Include="TestFramework.Web" Version="0.2.0" />
+		<PackageReference Include="TestFramework.Container" Version="0.2.0" />
+		<PackageReference Include="TestFramework.Container.Azure" Version="0.2.0" />
+		<PackageReference Include="TestFramework.Container.Web" Version="0.2.0" />
+	</ItemGroup>
+
+</Project>
