@@ -1,0 +1,54 @@
+- name: Overview
+  href: index.md
+- name: Concepts
+  items:
+  - name: The timeline
+    href: concepts/timeline.md
+  - name: Runs, stages and steps
+    href: concepts/runs-stages-steps.md
+  - name: Variables
+    href: concepts/variables.md
+  - name: Artifacts
+    href: concepts/artifacts.md
+  - name: Assertions
+    href: concepts/assertions.md
+  - name: Environments and providers
+    href: concepts/environments-and-providers.md
+  - name: Parallel execution
+    href: concepts/parallel-execution.md
+- name: Packages
+  items:
+  - name: TestFramework.Core
+    href: packages/core.md
+  - name: TestFramework.Config
+    href: packages/config.md
+  - name: TestFramework.Simple
+    href: packages/simple.md
+  - name: TestFramework.LocalIO
+    href: packages/localio.md
+  - name: TestFramework.Web
+    href: packages/web.md
+  - name: TestFramework.Azure
+    href: packages/azure.md
+  - name: TestFramework.Container
+    href: packages/container.md
+  - name: TestFramework.Container.Web
+    href: packages/container-web.md
+  - name: TestFramework.Container.Azure
+    href: packages/container-azure.md
+- name: How-to
+  items:
+  - name: Local to Docker to live
+    href: how-to/local-to-docker-to-live.md
+  - name: Configuration patterns
+    href: how-to/configuration-patterns.md
+  - name: Error handling
+    href: how-to/error-handling.md
+  - name: Debugging a run
+    href: how-to/debugging-a-run.md
+- name: Reference
+  items:
+  - name: Compatibility and versions
+    href: reference/compatibility.md
+  - name: The wider ecosystem
+    href: ecosystem.md
