@@ -80,13 +80,24 @@ function Copy-Symbols($Package, [string] $Destination) {
         Copy-Item $source $archive
     }
     else {
-        $url = 'https://api.nuget.org/v3-flatcontainer/{0}/{1}/{0}.{1}.snupkg' -f $Package.Id.ToLowerInvariant(), $Package.Version
-        try {
-            Invoke-WebRequest -Uri $url -OutFile $archive
-        }
-        catch {
-            return $false
-        }
+        # nuget.org does NOT serve .snupkg from the flat container - not for any package. Symbol
+        # packages go to symbols.nuget.org and are only retrievable through the symbol-server
+        # protocol, keyed by the pdb signature inside the assembly rather than by id and version.
+        # dotnet-symbol speaks that protocol, so it reads the staged dll and fetches the matching pdb.
+        $symbolDirectory = Join-Path $staging ('symbols-' + $Package.Id)
+        New-Item $symbolDirectory -ItemType Directory -Force | Out-Null
+
+        dotnet dotnet-symbol `
+            --server-path https://symbols.nuget.org/download/symbols `
+            --symbols `
+            --output $symbolDirectory `
+            (Join-Path $Destination ($Package.Id + '.dll')) | Out-Null
+
+        $fetched = Join-Path $symbolDirectory ($Package.Id + '.pdb')
+        if (-not (Test-Path $fetched)) { return $false }
+
+        Copy-Item $fetched $Destination -Force
+        return $true
     }
 
     $expanded = Join-Path $staging ('symbols-' + $Package.Id)
@@ -106,7 +117,8 @@ $documented = Select-Xml -Path (Join-Path $root 'docs.csproj') -XPath '//Package
 
 if (-not $documented) { throw 'docs.csproj declares no PackageReference, so there is nothing to document.' }
 
-Write-Step ('Documenting {0} packages at {1}' -f $documented.Count, $documented[0].Version)
+$versionSummary = ($documented | ForEach-Object { '{0} {1}' -f $_.Id, $_.Version }) -join ', '
+Write-Step ("Documenting $($documented.Count) packages: $versionSummary")
 
 Write-Step 'Restoring tools'
 dotnet tool restore | Out-Null

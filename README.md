@@ -37,6 +37,19 @@ used, and the Examples section is skipped if it is not checked out.
 `-AllowMissingNarration` downgrades un-narrated chapters from an error to a warning. It exists for the
 stretch while chapters are still being written; a normal build refuses them.
 
+## Where the view-source links come from
+
+Every type page links to its source, and that comes from the SourceLink map inside each package's `.pdb`.
+Those are not in the `.nupkg`, and - worth knowing before you go looking - **nuget.org does not serve
+`.snupkg` from its flat container at all**, for any package. Symbol packages live on symbols.nuget.org
+and are only retrievable through the symbol-server protocol, keyed by the signature inside the assembly
+rather than by id and version.
+
+So `Build-Docs.ps1` takes whichever route the feed allows: a local feed directory is read for the
+`.snupkg` beside the package, and nuget.org is queried through `dotnet-symbol` against
+symbols.nuget.org. If neither yields a pdb the build still succeeds, warns which packages lost their
+symbols, and those types simply carry no view-source link.
+
 ## Capturing example output
 
 The output panels under each chapter's code show what the test actually printed. That is captured

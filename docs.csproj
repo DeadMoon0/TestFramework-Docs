@@ -21,15 +21,15 @@
 	</PropertyGroup>
 
 	<ItemGroup Label="Documented packages">
-		<PackageReference Include="TestFramework.Core" Version="0.2.0" />
-		<PackageReference Include="TestFramework.Config" Version="0.2.0" />
-		<PackageReference Include="TestFramework.Simple" Version="0.2.0" />
-		<PackageReference Include="TestFramework.Azure" Version="0.2.0" />
-		<PackageReference Include="TestFramework.LocalIO" Version="0.2.0" />
-		<PackageReference Include="TestFramework.Web" Version="0.2.0" />
-		<PackageReference Include="TestFramework.Container" Version="0.2.0" />
-		<PackageReference Include="TestFramework.Container.Azure" Version="0.2.0" />
-		<PackageReference Include="TestFramework.Container.Web" Version="0.2.0" />
+		<PackageReference Include="TestFramework.Core" Version="0.3.0" />
+		<PackageReference Include="TestFramework.Config" Version="0.2.1" />
+		<PackageReference Include="TestFramework.Simple" Version="0.2.1" />
+		<PackageReference Include="TestFramework.Azure" Version="0.3.0" />
+		<PackageReference Include="TestFramework.LocalIO" Version="0.3.0" />
+		<PackageReference Include="TestFramework.Web" Version="0.3.0" />
+		<PackageReference Include="TestFramework.Container" Version="0.2.1" />
+		<PackageReference Include="TestFramework.Container.Azure" Version="0.2.1" />
+		<PackageReference Include="TestFramework.Container.Web" Version="0.2.1" />
 	</ItemGroup>
 
 </Project>
