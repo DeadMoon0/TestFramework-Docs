@@ -50,7 +50,11 @@ internal static class ChapterParser
         CompilationUnitSyntax root = (CompilationUnitSyntax)tree.GetRoot();
 
         List<ChapterTest> tests = FindTests(root);
-        List<ChapterBlock> blocks = SplitIntoBlocks(lines, tests, DroppedLines(root, lines.Length));
+        List<ChapterBlock> blocks = SplitIntoBlocks(
+            lines,
+            tests,
+            DroppedLines(root, lines.Length),
+            DeclarationSpans(root, lines.Length));
 
         if (!blocks.Any(block => block.Kind == BlockKind.Narration))
         {
@@ -88,12 +92,7 @@ internal static class ChapterParser
                 .SelectMany(list => list.Attributes)
                 .ToList();
 
-            AttributeSyntax? testAttribute = attributes.FirstOrDefault(attribute =>
-            {
-                string attributeName = AttributeName(attribute);
-                return attributeName.EndsWith("Fact", StringComparison.Ordinal)
-                    || attributeName.EndsWith("Theory", StringComparison.Ordinal);
-            });
+            AttributeSyntax? testAttribute = attributes.FirstOrDefault(IsTestAttribute);
 
             if (testAttribute is null)
             {
@@ -104,7 +103,8 @@ internal static class ChapterParser
             {
                 Name = method.Identifier.Text,
                 FullyQualifiedName = FullyQualifiedName(method),
-                Prerequisite = PrerequisiteOf(AttributeName(testAttribute)),
+                Prerequisite = PrerequisiteOf(AttributeName(testAttribute), attributes),
+                SkipReason = SkipReasonOf(testAttribute),
                 Traits = attributes
                     .Where(attribute => AttributeName(attribute) == "Trait")
                     .Select(TraitText)
@@ -119,6 +119,22 @@ internal static class ChapterParser
 
         return tests;
     }
+
+    /// <summary>An xunit test attribute, including the Showroom's own <c>[DockerFact]</c>.</summary>
+    private static bool IsTestAttribute(AttributeSyntax attribute)
+    {
+        string name = AttributeName(attribute);
+        return name.EndsWith("Fact", StringComparison.Ordinal)
+            || name.EndsWith("Theory", StringComparison.Ordinal);
+    }
+
+    /// <summary>Whether a type is a chapter type - one that actually runs something.</summary>
+    private static bool DeclaresTest(TypeDeclarationSyntax type) => type
+        .DescendantNodes()
+        .OfType<MethodDeclarationSyntax>()
+        .SelectMany(method => method.AttributeLists)
+        .SelectMany(list => list.Attributes)
+        .Any(IsTestAttribute);
 
     private static string AttributeName(AttributeSyntax attribute)
     {
@@ -145,12 +161,47 @@ internal static class ChapterParser
         return arguments.Count == 2 ? $"{arguments[0]}={arguments[1]}" : null;
     }
 
-    private static Prerequisite PrerequisiteOf(string attributeName) => attributeName switch
+    /// <summary>
+    /// What the test needs, from its attributes. A declared platform wins over the test attribute: a
+    /// plain <c>[Fact]</c> that is also <c>[SupportedOSPlatform("windows")]</c> does not run anywhere,
+    /// whatever xunit thinks.
+    /// </summary>
+    private static Prerequisite PrerequisiteOf(string attributeName, List<AttributeSyntax> attributes)
     {
-        "Fact" or "Theory" => Prerequisite.RunsAnywhere,
-        _ when attributeName.Contains("Docker", StringComparison.OrdinalIgnoreCase) => Prerequisite.NeedsDocker,
-        _ => Prerequisite.Unknown,
-    };
+        if (attributes.Any(IsWindowsOnly))
+        {
+            return Prerequisite.NeedsWindows;
+        }
+
+        return attributeName switch
+        {
+            "Fact" or "Theory" => Prerequisite.RunsAnywhere,
+            _ when attributeName.Contains("Docker", StringComparison.OrdinalIgnoreCase) => Prerequisite.NeedsDocker,
+            _ => Prerequisite.Unknown,
+        };
+    }
+
+    private static bool IsWindowsOnly(AttributeSyntax attribute)
+    {
+        if (AttributeName(attribute) != "SupportedOSPlatform")
+        {
+            return false;
+        }
+
+        return attribute.ArgumentList?.Arguments
+            .Select(argument => argument.Expression)
+            .OfType<LiteralExpressionSyntax>()
+            .Any(literal => literal.Token.ValueText.StartsWith("windows", StringComparison.OrdinalIgnoreCase))
+            ?? false;
+    }
+
+    /// <summary>The <c>Skip</c> argument of a test attribute, when it carries one.</summary>
+    private static string? SkipReasonOf(AttributeSyntax testAttribute) => testAttribute.ArgumentList?.Arguments
+        .Where(argument => argument.NameEquals?.Name.Identifier.Text == "Skip")
+        .Select(argument => argument.Expression)
+        .OfType<LiteralExpressionSyntax>()
+        .Select(literal => literal.Token.ValueText)
+        .FirstOrDefault();
 
     private static string FullyQualifiedName(MethodDeclarationSyntax method)
     {
@@ -182,6 +233,11 @@ internal static class ChapterParser
     /// Lines the page never shows: usings, the namespace, and the chapter type's own declaration and
     /// closing brace. They are C# ceremony, not part of what the chapter teaches.
     /// </summary>
+    /// <remarks>
+    /// Only a type that declares a test is treated as a chapter type. A namespace-level model, shim or
+    /// definition is left whole, because for those the declaration is the lesson: an entity's attributes
+    /// mean nothing without the class they are attached to.
+    /// </remarks>
     private static HashSet<int> DroppedLines(CompilationUnitSyntax root, int lineCount)
     {
         HashSet<int> dropped = [];
@@ -213,6 +269,11 @@ internal static class ChapterParser
         foreach (TypeDeclarationSyntax type in root.Members.OfType<TypeDeclarationSyntax>()
             .Concat(root.DescendantNodes().OfType<BaseNamespaceDeclarationSyntax>().SelectMany(n => n.Members).OfType<TypeDeclarationSyntax>()))
         {
+            if (!DeclaresTest(type))
+            {
+                continue;
+            }
+
             // A primary constructor is not ceremony: it is where a chapter's dependencies come from,
             // and dropping it would leave the reader wondering what `output` is. Only a bare
             // declaration is dropped.
@@ -240,7 +301,53 @@ internal static class ChapterParser
         return dropped;
     }
 
-    private static List<ChapterBlock> SplitIntoBlocks(string[] lines, List<ChapterTest> tests, HashSet<int> dropped)
+    /// <summary>
+    /// The lines that carry a chapter type's own declaration, when that declaration is kept because it
+    /// has a primary constructor.
+    /// </summary>
+    /// <remarks>
+    /// They become a code block of their own. Left in the same block as the members below them, the
+    /// declaration would sit at column zero above a body still indented inside a brace that was dropped -
+    /// which reads as broken C# rather than as the heading it is.
+    /// </remarks>
+    private static List<(int Start, int End)> DeclarationSpans(CompilationUnitSyntax root, int lineCount)
+    {
+        List<(int Start, int End)> spans = [];
+
+        foreach (TypeDeclarationSyntax type in root.Members.OfType<TypeDeclarationSyntax>()
+            .Concat(root.DescendantNodes().OfType<BaseNamespaceDeclarationSyntax>().SelectMany(n => n.Members).OfType<TypeDeclarationSyntax>()))
+        {
+            if (type.ParameterList is null || !DeclaresTest(type))
+            {
+                continue;
+            }
+
+            // An attribute belongs to the declaration it decorates, so it travels with it.
+            int start = type.AttributeLists.Count > 0
+                ? type.AttributeLists[0].GetLocation().GetLineSpan().StartLinePosition.Line + 1
+                : type.Keyword.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+
+            int end = type.OpenBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+
+            if (end < start)
+            {
+                end = start;
+            }
+
+            if (start >= 1 && start <= lineCount)
+            {
+                spans.Add((start, Math.Min(end, lineCount)));
+            }
+        }
+
+        return spans;
+    }
+
+    private static List<ChapterBlock> SplitIntoBlocks(
+        string[] lines,
+        List<ChapterTest> tests,
+        HashSet<int> dropped,
+        List<(int Start, int End)> declarations)
     {
         List<ChapterBlock> blocks = [];
         List<string> narration = [];
@@ -320,11 +427,23 @@ internal static class ChapterParser
             }
 
             FlushNarration();
+
+            // A kept chapter declaration is a heading: it opens its own block and closes it again.
+            if (declarations.Any(span => span.Start == lineNumber))
+            {
+                FlushCode();
+            }
+
             code.Add(line);
 
             foreach (ChapterTest test in tests.Where(test => test.EndLine == lineNumber))
             {
                 closing.Add(test);
+            }
+
+            if (declarations.Any(span => span.End == lineNumber))
+            {
+                FlushCode();
             }
         }
 

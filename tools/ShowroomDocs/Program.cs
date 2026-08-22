@@ -209,9 +209,7 @@ internal static class Program
 
             foreach (Chapter chapter in lane)
             {
-                string needs = chapter.Tests.Any(test => test.Prerequisite == Prerequisite.NeedsDocker)
-                    ? "Docker"
-                    : "nothing";
+                string needs = Needs(chapter);
 
                 page.AppendLine(
                     $"| [{chapter.Number} - {chapter.Title}]({PageWriter.LaneSlug(chapter.Lane)}/{chapter.Slug}.md) " +
@@ -222,6 +220,32 @@ internal static class Program
         }
 
         File.WriteAllText(Path.Combine(output, "index.md"), page.ToString());
+    }
+
+    /// <summary>
+    /// The overview table's "Needs" cell. It has to agree with the badge on the chapter's own page, so a
+    /// reader scanning the table and a reader opening the chapter are told the same thing.
+    /// </summary>
+    private static string Needs(Chapter chapter)
+    {
+        List<string> needs = [];
+
+        if (chapter.Tests.Any(test => test.Prerequisite == Prerequisite.NeedsDocker))
+        {
+            needs.Add("Docker");
+        }
+
+        if (chapter.Tests.Any(test => test.Prerequisite == Prerequisite.NeedsWindows))
+        {
+            needs.Add("Windows");
+        }
+
+        if (chapter.Tests.Count > 0 && chapter.Tests.All(test => test.SkipReason is not null))
+        {
+            needs.Add("an edit to run");
+        }
+
+        return needs.Count == 0 ? "nothing" : string.Join(", ", needs);
     }
 
     private static void WriteTableOfContents(List<Chapter> chapters, string output)

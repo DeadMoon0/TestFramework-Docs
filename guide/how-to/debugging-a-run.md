@@ -14,16 +14,21 @@ highest-value habit in this documentation.
 
 ## Read the report in this order
 
-The debug view is structured, so read it structurally rather than scanning for red:
+The debug view is structured, and its own order is the right reading order - the plan before the
+execution. Read it structurally rather than scanning for red:
 
-1. **Stage plan** - does the run contain the steps you think it does? A step you expected and cannot find
-   was probably never emitted, which is an authoring bug, not a runtime one.
-2. **Variables** - what did the values actually resolve to? Most "the system is wrong" turns out to be
+1. **Variables** - what did the values actually resolve to? Most "the system is wrong" turns out to be
    "the input was not what I meant".
-3. **Artifacts** - which resources were tracked, in what state, and under whose ownership.
-4. **Dependency graph** - why the planner ordered things this way, and what shared a layer.
-5. **Run log** - step by step, with attempt numbers. Read this last: it answers *what happened*, and the
-   sections above answer *what was supposed to*.
+2. **Stage plan** - does the run contain the steps you think it does, in the phases you expected? A step
+   you expected and cannot find was probably never emitted, which is an authoring bug, not a runtime one.
+3. **Dependency graph** - why the planner ordered things this way.
+4. **Then one block per stage**: a header carrying `steps | layers | peak parallel`, a flow trace, and one
+   box per step with its phase, its layer, its declared inputs and observed outputs, its log per attempt,
+   and its final state. This answers *what happened*; everything above answers *what was supposed to*.
+
+Artifacts have no section of their own - they appear where they are used. A step's outputs list each
+artifact with its state (`Setup`, `Cleaned`), and the cleanup stage logs what it did with every one of
+them, including the ones it deliberately left alone and why.
 
 You can see a real report on any [example chapter](../../examples/index.md) - open the **Output** panel.
 

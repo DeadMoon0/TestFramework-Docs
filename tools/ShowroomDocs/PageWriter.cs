@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace ShowroomDocs;
 
@@ -18,14 +19,20 @@ internal sealed class PageWriter(CapturedOutput captured)
 
         page.AppendLine($"# {chapter.Number} - {chapter.Title}");
         page.AppendLine();
-        page.AppendLine(Badges(chapter));
-        page.AppendLine();
-        page.AppendLine("Run the whole chapter:");
-        page.AppendLine();
-        page.AppendLine("```bash");
-        page.AppendLine(ChapterCommand(chapter));
-        page.AppendLine("```");
-        page.AppendLine();
+
+        // A chapter that declares no test is a chapter about the lane rather than a chapter that runs:
+        // it gets no badges and no command, because both would describe something that does not exist.
+        if (chapter.Tests.Count > 0)
+        {
+            page.AppendLine(Badges(chapter));
+            page.AppendLine();
+            page.AppendLine("Run the whole chapter:");
+            page.AppendLine();
+            page.AppendLine("```bash");
+            page.AppendLine(ChapterCommand(chapter));
+            page.AppendLine("```");
+            page.AppendLine();
+        }
 
         foreach (ChapterBlock block in chapter.Blocks)
         {
@@ -152,14 +159,39 @@ internal sealed class PageWriter(CapturedOutput captured)
             : $", {milliseconds:F0} ms";
     }
 
+    /// <summary>
+    /// What the chapter needs, and whether it runs at all. Both are stated before the code, because a
+    /// reader decides whether to follow along from this line.
+    /// </summary>
+    /// <remarks>
+    /// "Runs anywhere" is only emitted when it is true of every test in the chapter. A platform gate or a
+    /// standing skip replaces it rather than joining it: a reader on Linux who is told a chapter runs
+    /// anywhere, and then cannot run it, has been misled by the page and not by the framework.
+    /// </remarks>
     private static string Badges(Chapter chapter)
     {
         List<string> badges = [];
 
-        bool needsDocker = chapter.Tests.Any(test => test.Prerequisite == Prerequisite.NeedsDocker);
-        badges.Add(needsDocker
-            ? "<span class=\"tf-badge tf-badge-warn\">needs a Docker daemon</span>"
-            : "<span class=\"tf-badge tf-badge-ok\">runs anywhere</span>");
+        if (chapter.Tests.Any(test => test.Prerequisite == Prerequisite.NeedsDocker))
+        {
+            badges.Add("<span class=\"tf-badge tf-badge-warn\">needs a Docker daemon</span>");
+        }
+
+        if (chapter.Tests.Any(test => test.Prerequisite == Prerequisite.NeedsWindows))
+        {
+            badges.Add("<span class=\"tf-badge tf-badge-warn\">Windows only</span>");
+        }
+
+        if (chapter.Tests.All(test => test.Prerequisite == Prerequisite.RunsAnywhere))
+        {
+            badges.Add("<span class=\"tf-badge tf-badge-ok\">runs anywhere</span>");
+        }
+
+        // A standing skip is not a machine problem, so it is said separately from the prerequisites.
+        if (chapter.Tests.Count > 0 && chapter.Tests.All(test => test.SkipReason is not null))
+        {
+            badges.Add("<span class=\"tf-badge tf-badge-warn\">skipped unless you edit it</span>");
+        }
 
         badges.Add($"<span class=\"tf-badge\">{chapter.Tests.Count} test{(chapter.Tests.Count == 1 ? string.Empty : "s")}</span>");
 
@@ -172,51 +204,126 @@ internal sealed class PageWriter(CapturedOutput captured)
     }
 
     private static string ChapterCommand(Chapter chapter) =>
-        $"dotnet test {chapter.LaneProject} -c Release --filter \"FullyQualifiedName~{TypeName(chapter)}\"";
+        $"dotnet test {chapter.LaneProject} -c Release --filter \"{ChapterFilter(chapter)}\"";
 
     private static string TestCommand(Chapter chapter, ChapterTest test) =>
         $"dotnet test {chapter.LaneProject} -c Release --filter \"FullyQualifiedName={test.FullyQualifiedName}\"";
 
-    private static string TypeName(Chapter chapter)
+    /// <summary>
+    /// A filter that runs every test the chapter declares. Most chapters hold several classes sharing
+    /// one name - <c>Sql_SeededRow…</c>, <c>Sql_Finder…</c> - so the shared part is the filter, and the
+    /// command means what it says. When the names share nothing usable, each one is named outright:
+    /// a chapter command that silently runs half the chapter is worse than a long one.
+    /// </summary>
+    private static string ChapterFilter(Chapter chapter)
     {
-        string? name = chapter.Tests.Select(test => test.FullyQualifiedName).FirstOrDefault();
-        if (name is null)
+        List<string> containers = chapter.Tests
+            .Select(ContainerOf)
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(name => name, StringComparer.Ordinal)
+            .ToList();
+
+        if (containers.Count == 1)
         {
-            return chapter.Title.Replace(" ", string.Empty);
+            return $"FullyQualifiedName~{containers[0]}";
         }
 
-        int lastDot = name.LastIndexOf('.');
-        return lastDot < 0 ? name : name[..lastDot];
+        string? shared = SharedPrefix(containers);
+        return shared is not null
+            ? $"FullyQualifiedName~{shared}"
+            : string.Join('|', containers.Select(name => $"FullyQualifiedName~{name}"));
     }
 
+    private static string ContainerOf(ChapterTest test)
+    {
+        int lastDot = test.FullyQualifiedName.LastIndexOf('.');
+        return lastDot < 0 ? test.FullyQualifiedName : test.FullyQualifiedName[..lastDot];
+    }
+
+    /// <summary>
+    /// The part every class name starts with, cut at a boundary a name can actually be cut at, or
+    /// <c>null</c> when that would leave nothing but the namespace - which would run the whole lane.
+    /// </summary>
+    private static string? SharedPrefix(List<string> names)
+    {
+        int length = names[0].Length;
+        foreach (string name in names.Skip(1))
+        {
+            int index = 0;
+            while (index < length && index < name.Length && names[0][index] == name[index])
+            {
+                index++;
+            }
+
+            length = index;
+        }
+
+        // Cutting mid-word would match chapters nobody asked for, so only a separator will do.
+        int boundary = names[0][..length].LastIndexOfAny(['.', '_']);
+        if (boundary < 0)
+        {
+            return null;
+        }
+
+        string prefix = names[0][..boundary];
+        string @namespace = names[0][..(names[0].LastIndexOf('.') + 1)];
+        return prefix.Length > @namespace.Length ? prefix : null;
+    }
+
+    /// <summary>
+    /// Narration lines rewrapped into paragraphs: a bare <c>//doc:</c> separates them, and everything
+    /// between two of those becomes one paragraph regardless of where the comment happened to wrap.
+    /// </summary>
+    /// <remarks>
+    /// A line that opens a markdown block - a list item, a table row, a quote, a heading - keeps its own
+    /// line instead, because joining it to the line above would turn a list into a sentence with dashes
+    /// in it. One such line is one such item: narration has no way to express a continuation, and does
+    /// not need one.
+    /// </remarks>
     private static string Paragraphs(IReadOnlyList<string> lines)
     {
         List<string> paragraphs = [];
-        List<string> current = [];
+        StringBuilder current = new();
+
+        void Flush()
+        {
+            if (current.Length > 0)
+            {
+                paragraphs.Add(current.ToString());
+                current.Clear();
+            }
+        }
 
         foreach (string line in lines)
         {
             if (line.Length == 0)
             {
-                if (current.Count > 0)
-                {
-                    paragraphs.Add(string.Join(' ', current));
-                    current.Clear();
-                }
-
+                Flush();
                 continue;
             }
 
-            current.Add(line);
+            if (current.Length > 0)
+            {
+                current.Append(StartsMarkdownBlock(line) ? '\n' : ' ');
+            }
+
+            current.Append(line);
         }
 
-        if (current.Count > 0)
-        {
-            paragraphs.Add(string.Join(' ', current));
-        }
+        Flush();
 
         return string.Join("\n\n", paragraphs);
     }
+
+    private static bool StartsMarkdownBlock(string line) =>
+        line.StartsWith("- ", StringComparison.Ordinal)
+        || line.StartsWith("* ", StringComparison.Ordinal)
+        || line.StartsWith("> ", StringComparison.Ordinal)
+        || line.StartsWith("| ", StringComparison.Ordinal)
+        || line.StartsWith("#", StringComparison.Ordinal)
+        || OrderedListItem.IsMatch(line);
+
+    private static readonly Regex OrderedListItem = new(@"^[0-9]{1,2}\. ", RegexOptions.Compiled);
 
     public static string LaneSlug(string lane) =>
         lane.Replace("TestFramework.Showroom.", string.Empty, StringComparison.Ordinal).ToLowerInvariant();

@@ -36,10 +36,27 @@ internal sealed class ChapterTest
     public required string FullyQualifiedName { get; init; }
 
     /// <summary>
-    /// What the test needs from the machine, derived from its attribute: a plain <c>[Fact]</c> runs
-    /// anywhere, while <c>[DockerFact]</c> skips itself with a reason when no daemon answers.
+    /// What the test needs from the machine: a plain <c>[Fact]</c> runs anywhere, <c>[DockerFact]</c>
+    /// skips itself with a reason when no daemon answers, and <c>[SupportedOSPlatform("windows")]</c>
+    /// narrows it to one operating system.
     /// </summary>
+    /// <remarks>
+    /// A platform gate is read from the attribute rather than guessed at from the code, and it outranks
+    /// the test attribute: "runs anywhere" is a promise, and a reader on Linux who takes it at face value
+    /// and then cannot run the chapter has been told something false by the page.
+    /// </remarks>
     public required Prerequisite Prerequisite { get; init; }
+
+    /// <summary>
+    /// The reason a test skips itself unconditionally, from <c>[Fact(Skip = "…")]</c>, or
+    /// <see langword="null"/> when it runs.
+    /// </summary>
+    /// <remarks>
+    /// Distinct from a <c>[DockerFact]</c> skip, which depends on the machine. This one is a decision the
+    /// chapter made, so the page states it up front instead of leaving a reader to discover it from an
+    /// output panel.
+    /// </remarks>
+    public string? SkipReason { get; init; }
 
     /// <summary>xunit traits, so a reader can find the lane-wide filter a chapter belongs to.</summary>
     public IReadOnlyList<string> Traits { get; init; } = [];
@@ -52,6 +69,7 @@ internal enum Prerequisite
 {
     RunsAnywhere,
     NeedsDocker,
+    NeedsWindows,
     Unknown,
 }
 
