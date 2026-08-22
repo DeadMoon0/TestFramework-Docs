@@ -60,6 +60,7 @@ if ($files.Count -eq 0) { throw 'No capture files found; nothing to merge.' }
 $tests = [ordered]@{}
 $commits = [System.Collections.Generic.HashSet[string]]::new()
 $environments = [System.Collections.Generic.HashSet[string]]::new()
+$processorCounts = [System.Collections.Generic.HashSet[string]]::new()
 $capturedAt = $null
 $capturedIn = $null
 
@@ -70,8 +71,13 @@ foreach ($file in $files) {
     if (-not $capturedAt -and $capture.capturedAt) { $capturedAt = $capture.capturedAt }
 
     if ($capture.capturedIn) {
-        # Timings from two different machines in one file describe nothing in particular.
-        [void] $environments.Add(($capture.capturedIn | ConvertTo-Json -Compress -Depth 4))
+        # Compare the machine *class*, not the instance. A matrix runs each lane on its own runner, so
+        # the instance differs by design; what must agree is the kind of machine, because that is what
+        # a published timing claims. Core count is reported rather than enforced: it varies within a
+        # runner class and a reader is told which machine the figures came from anyway.
+        $class = '{0}|{1}|{2}' -f $capture.capturedIn.kind, $capture.capturedIn.image, $capture.capturedIn.os
+        [void] $environments.Add($class)
+        [void] $processorCounts.Add([string] $capture.capturedIn.processors)
         if (-not $capturedIn) { $capturedIn = $capture.capturedIn }
     }
 
@@ -95,7 +101,11 @@ if ($commits.Count -gt 1) {
 }
 
 if ($environments.Count -gt 1) {
-    throw 'Captures were taken on different machines, so their durations cannot be published as one set.'
+    throw ('Captures come from different kinds of machine ({0}), so their durations cannot be published as one set.' -f ($environments -join ' / '))
+}
+
+if ($processorCounts.Count -gt 1) {
+    Write-Warning ('Lanes ran on runners with different core counts ({0}); timings are comparable only loosely.' -f ($processorCounts -join ', '))
 }
 
 if ($tests.Count -eq 0) { throw 'The capture files hold no test results.' }

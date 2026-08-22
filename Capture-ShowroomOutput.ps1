@@ -79,7 +79,6 @@ function Get-CaptureEnvironment {
         kind = if ($isCi) { 'GitHub Actions' } else { 'local machine' }
         os = [System.Runtime.InteropServices.RuntimeInformation]::OSDescription.Trim()
         image = if ($env:ImageOS) { $env:ImageOS } else { $null }
-        runner = if ($env:RUNNER_NAME) { $env:RUNNER_NAME } else { $null }
         processors = [Environment]::ProcessorCount
     }
 }
