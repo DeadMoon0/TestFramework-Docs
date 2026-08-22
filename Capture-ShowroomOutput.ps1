@@ -98,6 +98,15 @@ function Convert-ToStableText([string] $Text) {
     $stable = [regex]::Replace($stable, '\b(?=[0-9a-f]*[0-9])[0-9a-f]{8,}\b', '<id>', 'IgnoreCase')
     $stable = $stable -replace [regex]::Escape($showroom), '<showroom>'
     $stable = $stable -replace '[A-Za-z]:\\[^\s"'']*', '<path>'
+
+    # The debug view wraps long values across box lines, so a path can be split and only its first
+    # slice matches the pattern above. Redact the account name on its own as well - a fragment that
+    # happens to start mid-path must not be the thing that publishes it.
+    if ($env:USERNAME) { $stable = $stable -replace [regex]::Escape($env:USERNAME), '<user>' }
+    if ($env:USERPROFILE) {
+        $leaf = Split-Path $env:USERPROFILE -Leaf
+        if ($leaf) { $stable = $stable -replace [regex]::Escape($leaf), '<user>' }
+    }
     $stable = $stable -replace '\b\d+(\.\d+)?\s?ms\b', '<duration>'
     $stable = $stable -replace 'localhost:\d{4,5}', 'localhost:<port>'
     $stable = $stable -replace '127\.0\.0\.1:\d{4,5}', '127.0.0.1:<port>'

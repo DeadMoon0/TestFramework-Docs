@@ -25,6 +25,13 @@ name: Publish documentation
 # is deliberate: the alternative keeps a passing panel alive after the environment that produced it is
 # gone, and a reader cannot tell the difference.
 #
+# SYMBOLS, AND WHY THE VIEW-SOURCE LINKS DEPEND ON AN EXTRA HOST. Every type page links to its source
+# through the SourceLink map inside the package's .pdb, and a .pdb is not in the .nupkg. nuget.org does
+# not serve .snupkg from its flat container either - for any package - so Build-Docs.ps1 asks
+# symbols.nuget.org for them through dotnet-symbol, which is pinned in .config/dotnet-tools.json and
+# installed by `dotnet tool restore`. A runner that cannot reach that host still produces a site: the
+# build warns which packages lost their symbols and those types carry no view-source link.
+#
 # TWO THINGS MUST BE TRUE BEFORE THIS CAN GO GREEN, neither of them a fault in this pipeline:
 #   * The TestFramework package chain must be on nuget.org. Build-Docs.ps1 restores from the public
 #     feed, and the Showroom deliberately pins published versions only.

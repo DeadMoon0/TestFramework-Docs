@@ -1,6 +1,6 @@
 ![Icon](https://raw.githubusercontent.com/DeadMoon0/TestFramework-Common/96ef4240c1e55ba95a20b99285219a61407c6355/Assets/Icon.svg)
 
-# TestFramework-Docu
+# TestFramework-Docs
 
 The documentation site for the TestFramework packages. This repository holds no framework code - it
 builds a site out of what the packages already ship and what the Showroom already runs.
