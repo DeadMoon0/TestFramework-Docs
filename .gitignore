@@ -439,3 +439,8 @@ api/*
 !api/index.md
 examples/
 guide/includes/versions.md
+
+# The NuGet rule above (**/[Pp]ackages/*) is meant for restore folders, and it silently swallowed the
+# guide's package pages - the site then built locally and failed in a clean clone. These are content.
+!guide/packages/
+!guide/packages/**
