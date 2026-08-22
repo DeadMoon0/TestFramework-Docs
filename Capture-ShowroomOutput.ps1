@@ -1,4 +1,4 @@
-#Requires -Version 7
+﻿#Requires -Version 7
 
 <#
 .SYNOPSIS
@@ -122,6 +122,11 @@ function Convert-ToAlignedBoxArt([string] $Text) {
         Each line that closes with a border is therefore re-padded to the width of the box it is in,
         which is the width of the last corner line seen. Corner lines carry no variable content, so
         that width is stable by construction, and the art keeps the alignment it was drawn with.
+
+        Lines drawn from box glyphs alone are left exactly as they are. The tree that joins one panel
+        to the next is made of them, it holds no normalised value, and it is not inside the box whose
+        corner was seen last - so re-padding it stretched a three-character connector into a full
+        width row and put a stray border down the right-hand side of the page.
     #>
     $corner = [char[]] @([char]0x256D, [char]0x256E, [char]0x256F, [char]0x2570)
     $border = [char]0x2502
@@ -133,6 +138,13 @@ function Convert-ToAlignedBoxArt([string] $Text) {
             $line
             continue
         }
+
+        # A line of nothing but tree and box glyphs carries no normalised value, so it has no padding
+        # to correct - and re-padding one turned the tree's own connector lines, which are three
+        # characters long, into full-width rows of a box they are not even inside.
+        # U+2500-U+257F is the Box Drawing block, so this asks whether the line has any character
+        # that is not a box glyph or a space.
+        if ($line -notmatch '[^\s\u2500-\u257F]') { $line; continue }
 
         if ($width -gt 0 -and $line.EndsWith($border) -and $line -match '^(?<content>.*\S)[ ]*.$') {
             $content = $Matches['content']
