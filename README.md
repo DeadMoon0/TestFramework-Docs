@@ -99,7 +99,7 @@ this run's code.
 lane or a chapter is defined in one place. `capture` runs each lane in its own job with `fail-fast`
 off - a lane that cannot start its containers must not stop one that can, and its skip reasons are
 themselves publishable. `publish` merges the lane captures, builds the site, uploads it, and commits
-the captured output back to `main` tagged `Docu-v<date>.<run>`.
+the captured output back to `main` tagged `Docs-v<date>.<run>`.
 
 **Content is committed; measurements are not.** A capture produces two kinds of fact and they live in
 different places. What an example printed, and whether it passed or skipped, goes in

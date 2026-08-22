@@ -205,7 +205,7 @@ jobs:
           fi
 
           # Date plus run number: chronological, and a second run on the same day gets its own tag.
-          tag="Docu-v$(date -u +%Y.%m.%d).${GITHUB_RUN_NUMBER}"
+          tag="Docs-v$(date -u +%Y.%m.%d).${GITHUB_RUN_NUMBER}"
 
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
