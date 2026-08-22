@@ -127,6 +127,11 @@ function Convert-ToAlignedBoxArt([string] $Text) {
         to the next is made of them, it holds no normalised value, and it is not inside the box whose
         corner was seen last - so re-padding it stretched a three-character connector into a full
         width row and put a stray border down the right-hand side of the page.
+
+        A normalised value can also be longer than what it replaced, which pushes the content past the
+        box instead of leaving slack inside it. Padding cannot shorten a line, so those are re-wrapped
+        onto a continuation line instead - which is what the view itself would have done had the value
+        really been that long.
     #>
     $corner = [char[]] @([char]0x256D, [char]0x256E, [char]0x256F, [char]0x2570)
     $border = [char]0x2502
@@ -149,7 +154,29 @@ function Convert-ToAlignedBoxArt([string] $Text) {
         if ($width -gt 0 -and $line.EndsWith($border) -and $line -match '^(?<content>.*\S)[ ]*.$') {
             $content = $Matches['content']
             $padding = $width - $content.Length - 1
-            if ($padding -lt 1) { $line } else { $content + (' ' * $padding) + $border }
+            if ($padding -ge 1) {
+                $content + (' ' * $padding) + $border
+                continue
+            }
+
+            # A placeholder can be longer than the value it stands for - '<duration>' for '43ms' - and
+            # then the content no longer fits the box the renderer drew it in. Removing padding cannot
+            # take that back, so the overflow is wrapped the way the view wraps its own long lines:
+            # onto a continuation line, indented under what it continues.
+            $prefix = [regex]::Match($content, '^[\s\u2500-\u257F]*').Value
+            $room = $width - $prefix.Length - 2
+            if ($room -lt 8) { $line; continue }
+
+            $text = $content.Substring($prefix.Length)
+            while ($text.Length -gt $room) {
+                $cut = $text.LastIndexOf(' ', [Math]::Min($room, $text.Length - 1))
+                if ($cut -le 0) { $cut = $room }
+                $head = $text.Substring(0, $cut).TrimEnd()
+                $prefix + $head + (' ' * ($width - $prefix.Length - $head.Length - 1)) + $border
+                $text = '  ' + $text.Substring($cut).TrimStart()
+            }
+
+            $prefix + $text + (' ' * ($width - $prefix.Length - $text.Length - 1)) + $border
             continue
         }
 
