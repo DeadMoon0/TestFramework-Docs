@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<!--
 	  The version stamp for the whole site.
@@ -20,16 +20,24 @@
 		<NoWarn>NU1701</NoWarn>
 	</PropertyGroup>
 
+	<!--
+	  These are what the API reference is generated FROM, so a stale pin here publishes the previous
+	  contract as if it were current - which it did: the whole family moved to Execute(RunContext) while
+	  this still pointed at the version that took four loose parameters. Bump these with the chain.
+
+	  The UI trio is deliberately absent and stays a separate decision: the site has no UI API section to
+	  fill yet, and adding three packages here would generate one nobody wrote prose for.
+	-->
 	<ItemGroup Label="Documented packages">
-		<PackageReference Include="TestFramework.Core" Version="0.3.0" />
-		<PackageReference Include="TestFramework.Config" Version="0.2.1" />
-		<PackageReference Include="TestFramework.Simple" Version="0.2.1" />
-		<PackageReference Include="TestFramework.Azure" Version="0.3.0" />
-		<PackageReference Include="TestFramework.LocalIO" Version="0.3.0" />
-		<PackageReference Include="TestFramework.Web" Version="0.3.0" />
-		<PackageReference Include="TestFramework.Container" Version="0.2.1" />
-		<PackageReference Include="TestFramework.Container.Azure" Version="0.2.1" />
-		<PackageReference Include="TestFramework.Container.Web" Version="0.2.1" />
+		<PackageReference Include="TestFramework.Core" Version="0.4.0" />
+		<PackageReference Include="TestFramework.Config" Version="0.3.0" />
+		<PackageReference Include="TestFramework.Simple" Version="0.3.0" />
+		<PackageReference Include="TestFramework.Azure" Version="0.4.0" />
+		<PackageReference Include="TestFramework.LocalIO" Version="0.4.0" />
+		<PackageReference Include="TestFramework.Web" Version="0.4.0" />
+		<PackageReference Include="TestFramework.Container" Version="0.4.0" />
+		<PackageReference Include="TestFramework.Container.Azure" Version="0.4.0" />
+		<PackageReference Include="TestFramework.Container.Web" Version="0.4.0" />
 	</ItemGroup>
 
 </Project>

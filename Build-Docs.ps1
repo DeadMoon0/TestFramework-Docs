@@ -1,4 +1,4 @@
-#Requires -Version 7
+﻿#Requires -Version 7
 
 <#
 .SYNOPSIS
@@ -132,6 +132,18 @@ if ($LASTEXITCODE -ne 0) { throw 'dotnet restore failed.' }
 Write-Step 'Staging assemblies, XML docs and symbols'
 Remove-Item $staging -Recurse -Force -ErrorAction Ignore
 New-Item $stagedApi, $stagedRefs -ItemType Directory -Force | Out-Null
+
+# docfx writes generated metadata into api/ and never removes what it did not regenerate, so a type the
+# family has DELETED keeps its page across every later build - and its cross-references now point at
+# members that are gone, which --warningsAsErrors turns into a failed build with a very confusing message.
+# Found exactly that way: ContainerSource.EntryPoint was removed in Container 0.4.0, and
+# EntryPointContainerSource.yml sat in api/ for three days afterwards linking to it.
+#
+# api/index.md is the one hand-written file in there and the only one committed, so everything else goes.
+Write-Step 'Clearing generated API metadata'
+Get-ChildItem (Join-Path $root 'api') -File -ErrorAction Ignore |
+    Where-Object { $_.Name -ne 'index.md' } |
+    Remove-Item -Force
 
 $withoutSymbols = @()
 foreach ($package in $documented) {
