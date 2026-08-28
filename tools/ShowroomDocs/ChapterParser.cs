@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -32,7 +32,16 @@ internal static class ChapterParser
     private const string HideEnd = "//doc:hide-end";
 
     /// <summary>Chapter files carry the Showroom's own numbering; anything else is infrastructure.</summary>
-    private static readonly Regex ChapterFileName = new(@"^(?<number>[0-9]{1,2}|[WA][0-9]{1,2})_(?<name>[A-Za-z0-9]+)\.cs$", RegexOptions.Compiled);
+    /// <summary>
+    /// What a chapter file is called: an optional lane letter, a number, and a name.
+    /// </summary>
+    /// <remarks>
+    /// The letter used to be spelled out as <c>[WA]</c>, which is why the UI lane produced no pages for
+    /// months: <c>U1_Storefront.cs</c> simply did not match, so it was never a chapter, never narrated,
+    /// never reported. Any letter is accepted now - the next lane to be added should appear, not be
+    /// discovered missing later.
+    /// </remarks>
+    private static readonly Regex ChapterFileName = new(@"^(?<number>[A-Z]?[0-9]{1,2})_(?<name>[A-Za-z0-9]+)\.cs$", RegexOptions.Compiled);
 
     public static bool IsChapterFile(string path) => ChapterFileName.IsMatch(Path.GetFileName(path));
 

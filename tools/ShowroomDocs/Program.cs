@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -115,6 +115,15 @@ internal static class Program
             return 1;
         }
 
+        // A lane that produces nothing is the failure this check exists for, and it is invisible without
+        // it: the UI lane was discovered, skipped for carrying no narration, and left the site with no UI
+        // pages at all - for months, because a missing section looks exactly like a section nobody wrote.
+        // Counting discovered lanes against lanes that produced pages is what turns that into a sentence.
+        foreach (string silent in SilentLanes(showroom, chapters))
+        {
+            failures.Add($"lane '{silent}' was discovered but produced no pages.");
+        }
+
         WriteLandingPage(chapters, output, captured);
         WriteTableOfContents(chapters, output);
 
@@ -130,12 +139,42 @@ internal static class Program
             }
 
             Console.Error.WriteLine(
-                $"{severity}: {failures.Count} chapter(s) carry no //doc: narration.");
+                $"{severity}: {failures.Count} problem(s) would leave the site incomplete.");
 
             return allowMissingNarration ? 0 : 1;
         }
 
         return 0;
+    }
+
+    /// <summary>
+    /// Lanes the generator found on disk that contributed no page.
+    /// </summary>
+    /// <remarks>
+    /// Discovery and output are two different things, and only the second one is visible on the site. A
+    /// lane whose chapters are all unnarrated is discovered, skipped one chapter at a time, and then
+    /// absent - which reads as "nobody has written that lane yet" rather than as a fault.
+    /// </remarks>
+    /// <param name="showroom">The Showroom checkout.</param>
+    /// <param name="chapters">The chapters that will be written.</param>
+    /// <returns>The lane names that produced nothing.</returns>
+    private static IEnumerable<string> SilentLanes(string showroom, IReadOnlyCollection<Chapter> chapters)
+    {
+        HashSet<string> produced = [.. chapters.Select(chapter => chapter.Lane)];
+
+        foreach (string laneDirectory in Directory.GetDirectories(showroom, "TestFramework.Showroom.*").OrderBy(path => path))
+        {
+            string lane = Path.GetFileName(laneDirectory);
+
+            // Asked of the same predicate the walk above uses, so "has chapters" means here exactly what
+            // it means there. Counting .cs files instead would report a lane holding only a gate, and a
+            // check that cries wolf is one a reader learns to skip.
+            if (!produced.Contains(lane)
+                && Directory.GetFiles(laneDirectory, "*.cs").Any(ChapterParser.IsChapterFile))
+            {
+                yield return lane;
+            }
+        }
     }
 
     /// <summary>
@@ -274,6 +313,7 @@ internal static class Program
         "TestFramework.Showroom.Basic" => "Basics",
         "TestFramework.Showroom.Web" => "Web",
         "TestFramework.Showroom.Azure" => "Azure",
+        "TestFramework.Showroom.UI" => "UI",
         _ => lane,
     };
 
