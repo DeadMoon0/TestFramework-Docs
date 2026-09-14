@@ -29,7 +29,7 @@
 	  fill yet, and adding three packages here would generate one nobody wrote prose for.
 	-->
 	<ItemGroup Label="Documented packages">
-		<PackageReference Include="TestFramework.Core" Version="0.4.0" />
+		<PackageReference Include="TestFramework.Core" Version="0.5.0" />
 		<PackageReference Include="TestFramework.Config" Version="0.3.0" />
 		<PackageReference Include="TestFramework.Simple" Version="0.3.0" />
 		<PackageReference Include="TestFramework.Azure" Version="0.4.0" />
