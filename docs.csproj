@@ -25,8 +25,11 @@
 	  contract as if it were current - which it did: the whole family moved to Execute(RunContext) while
 	  this still pointed at the version that took four loose parameters. Bump these with the chain.
 
-	  The UI trio is deliberately absent and stays a separate decision: the site has no UI API section to
-	  fill yet, and adding three packages here would generate one nobody wrote prose for.
+	  UI.Browser was deliberately absent while it was three packages and the site had no UI content: an
+	  API section nobody had written prose for was worse than none. Both halves of that stopped being
+	  true - the trio is one package, and the UI lane has narrated chapters - so it is documented here
+	  like the rest. It carries its own XML docs, which is what every package outside Core relies on;
+	  overwrites/ is Core-only and stays that way.
 	-->
 	<ItemGroup Label="Documented packages">
 		<PackageReference Include="TestFramework.Core" Version="0.5.0" />
@@ -38,6 +41,7 @@
 		<PackageReference Include="TestFramework.Container" Version="0.4.0" />
 		<PackageReference Include="TestFramework.Container.Azure" Version="0.4.0" />
 		<PackageReference Include="TestFramework.Container.Web" Version="0.4.0" />
+		<PackageReference Include="TestFramework.UI.Browser" Version="0.2.0" />
 	</ItemGroup>
 
 </Project>
