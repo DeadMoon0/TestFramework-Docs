@@ -18,7 +18,7 @@ public sealed class MailSenderPack : MockDefinition<IMailSender>
     protected override void Configure(MockBuilder<IMailSender> mock)
     {
         mock.Call(m => m.SendAsync(MockArg.Any<string>(), MockArg.Any<string>()))
-            .Returns(Task.FromResult(true))
+            .ReturnsAsync(true)
             .ProducesArtifact((string to, string subject) => new("sentMail", $"{to}: {subject}"));
     }
 }
@@ -71,7 +71,15 @@ Pack mistakes surface when the run's environment starts, before the first step.
 
 `MockExt.Host` awaits a returned `Task` or `Task<T>`, so the step finishes when the call does and its
 result is what the task yielded. Any other awaitable — a `ValueTask`, a task of a task — is refused when
-the timeline is built; call `.AsTask()` on a `ValueTask`.
+the timeline is built; call `.AsTask()` on a `ValueTask`. Put a `CancellationToken` behind the service in
+the lambda to receive the step's own, so a call that honours it stops when its step times out.
+
+Every call runs in a scope of its own, the way production opens one per request: scoped services are
+fresh per call and disposed when it ends.
+
+On the pack side, `ReturnsAsync(value)`, `Completes()` and `ThrowsAsync(exception)` answer async methods
+the way a real async dependency does — `ThrowsAsync` hands back a failed task instead of throwing at the
+call — and a declared artifact belongs to an async call only once its task has finished successfully.
 
 ## Troubleshooting
 
