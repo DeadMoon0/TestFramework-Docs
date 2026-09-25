@@ -26,6 +26,8 @@
     href: packages/simple.md
   - name: TestFramework.LocalIO
     href: packages/localio.md
+  - name: TestFramework.Mock
+    href: packages/mock.md
   - name: TestFramework.Web
     href: packages/web.md
   - name: TestFramework.Azure

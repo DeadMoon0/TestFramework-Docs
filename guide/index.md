@@ -25,6 +25,7 @@ One page each. Every package is additive: install it when a test needs what it d
 | [TestFramework.Config](packages/config.md) | configuration and dependency injection setup |
 | [TestFramework.Simple](packages/simple.md) | inline actions and messages, without a custom step class |
 | [TestFramework.LocalIO](packages/localio.md) | shell commands, file events, file artifacts |
+| [TestFramework.Mock](packages/mock.md) | the system under test in-process, with declared test doubles |
 | [TestFramework.Web](packages/web.md) | REST APIs, SQL Server, stubbed dependencies |
 | [TestFramework.Azure](packages/azure.md) | Function Apps, Logic Apps, Service Bus, Storage, Cosmos, SQL |
 | [TestFramework.Container](packages/container.md) | the shared Docker building blocks |
@@ -55,4 +56,5 @@ site does not duplicate it:
 - [TestFramework-Azure: arc42](https://github.com/DeadMoon0/TestFramework-Azure/blob/main/Documentation/Arc42.md)
 - [TestFramework-Web: arc42](https://github.com/DeadMoon0/TestFramework-Web/blob/main/Documentation/Arc42.md)
 - [TestFramework-LocalIO: arc42](https://github.com/DeadMoon0/TestFramework-LocalIO/blob/main/Documentation/Arc42.md)
+- [TestFramework-Mock: arc42](https://github.com/DeadMoon0/TestFramework-Mock/blob/main/Documentation/Arc42.md)
 - [TestFramework.Container.Azure: architecture](https://github.com/DeadMoon0/TestFramework-Container/blob/main/TestFramework.Container.Azure/Documentation/Architecture.md)
