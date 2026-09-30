@@ -1,6 +1,6 @@
 # API reference
 
-Every public type in the nine published packages, reflected out of the assemblies that ship on
+Every public type in the published TestFramework packages, reflected out of the assemblies that ship on
 nuget.org - so nothing here is API you cannot install.
 
 The most-visited namespaces carry a note saying which contract layer they belong to - the consumer-first
