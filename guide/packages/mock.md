@@ -64,6 +64,9 @@ another program wrote. `CaptureArtifactVersion` takes a later look; each look is
 - A call more than one setup matches is refused, naming them all. There is no precedence rule.
 - A setup for a method that returns something must say what it returns: `Returns`, `Compute` or `Throws`.
 - `ProducesArtifact` records only when the call completes; a call that throws never produced it.
+- A `Host` step for a service the composition does not register is refused while the run is planned,
+  before its first step: every registered service is declared as a `mock.host` resource, and the refusal
+  lists them.
 
 Pack mistakes surface when the run's environment starts, before the first step.
 
@@ -87,7 +90,10 @@ call — and a declared artifact belongs to an async call only once its task has
 widen a matcher. If the step passed anyway, the system under test swallowed the refusal — the call is
 still in `run.Mock<T>().RecordedCalls` with `Matched` false.
 
-**`This run has no mock host`.** The run was started without `SetEnv(MockEnvironment.For(...))`.
+**`Step '...' requires mock.host '...', and nothing in this run declares it`.** Refused before the first
+step. Either the run was started without `SetEnv(MockEnvironment.For(...))`, or the composition does not
+register the class the `Host` step calls. Register the system under test itself, not only its
+dependencies.
 
 **The found artifact holds only the last payload.** A version is a look the timeline took, not one per
 call. Add a `CaptureArtifactVersion` after each step whose effect you want to keep.
