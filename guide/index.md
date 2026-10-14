@@ -27,6 +27,7 @@ One page each. Every package is additive: install it when a test needs what it d
 | [TestFramework.LocalIO](packages/localio.md) | shell commands, file events, file artifacts |
 | [TestFramework.Mock](packages/mock.md) | the system under test in-process, with declared test doubles |
 | [TestFramework.Web](packages/web.md) | REST APIs, SQL Server, stubbed dependencies |
+| [TestFramework.UI.Browser](packages/ui-browser.md) | a real browser driving a web application |
 | [TestFramework.Azure](packages/azure.md) | Function Apps, Logic Apps, Service Bus, Storage, Cosmos, SQL |
 | [TestFramework.Container](packages/container.md) | the shared Docker building blocks |
 | [TestFramework.Container.Web](packages/container-web.md) | the web stack, served from containers |

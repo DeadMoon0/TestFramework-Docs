@@ -23,6 +23,8 @@ not before:
 |---|---|
 | Run shell commands, watch files | `TestFramework.LocalIO` |
 | Call REST APIs and the SQL behind them | `TestFramework.Web` |
+| Drive a web application in a real browser | `TestFramework.UI.Browser` |
+| Host the system under test in-process with test doubles | `TestFramework.Mock` |
 | Talk to Azure components | `TestFramework.Azure` |
 | Configure services and settings properly | `TestFramework.Config` |
 | Trigger small inline actions | `TestFramework.Simple` |

@@ -8,12 +8,13 @@ Two repositories in the TestFramework ecosystem are not NuGet packages. They mat
 concept per chapter, each an executable test. The [Examples](../examples/index.md) section of this site is
 generated from it, so what you read there is what runs.
 
-It is organised in three lanes, in increasing order of what they need from your machine:
+It is organised in four lanes, in increasing order of what they need from your machine:
 
 | Lane | Needs | Covers |
 |---|---|---|
 | Basic | nothing | the timeline model, variables, events, artifacts, assertions, retry, failure paths |
 | Web | a Docker daemon, except the schema chapter | REST APIs, SQL Server, stubs, and all four together |
+| UI | a Docker daemon and a browser | a real browser against a container-hosted site, and the evidence a run keeps |
 | Azure | a Docker daemon | Storage, Table, Cosmos, Service Bus, SQL, Function Apps |
 
 Clone it and run a lane directly:
@@ -38,9 +39,11 @@ for timeline runs. Reach for it when a text report stops being enough:
 - pause at breakpoints and continue deliberately,
 - keep completed runs open while later runs execute.
 
-**It is not a NuGet package**, and it is not published yet. It is a Windows desktop application, and its
-distribution story is still open - so today it means building from the repository. If you only need to read
-a run occasionally, the text report covers it; see [debugging a run](how-to/debugging-a-run.md).
+**It is not a NuGet package.** It is a Windows desktop application: download
+`TestFramework.DebugUI.Setup.exe` from the [latest release](https://github.com/DeadMoon0/TestFramework-DebugUI/releases),
+and see [INSTALLING.md](https://github.com/DeadMoon0/TestFramework-DebugUI/blob/main/Documentation/INSTALLING.md)
+for updating and rolling back. If you only need to read a run occasionally, the text report covers it; see
+[debugging a run](how-to/debugging-a-run.md).
 
 ## Common - the shared assets
 

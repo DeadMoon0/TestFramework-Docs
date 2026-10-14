@@ -63,8 +63,8 @@ For large runs, the [DebugUI](../ecosystem.md) inspects a run as a tree -
 breakpoints you can pause at and continue from deliberately. It is the same data the text report shows,
 navigable instead of scrolled.
 
-It is a desktop companion tool rather than a package, and it is not published yet - see
-[the ecosystem page](../ecosystem.md) for what that means today.
+It is a desktop companion tool rather than a package, installed from its GitHub release - see
+[the ecosystem page](../ecosystem.md).
 
 ## Going deeper
 

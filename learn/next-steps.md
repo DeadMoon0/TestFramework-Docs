@@ -11,7 +11,7 @@ one page per package, and how-tos for the awkward parts.
 **"I want to see it working."** The [Examples](../examples/index.md) are runnable chapters with the
 output they actually produced. Each one has a copy-pasteable command for the single test.
 
-**"I need a signature."** The [API reference](../api/index.md) covers every public type in all nine
+**"I need a signature."** The [API reference](../api/index.md) covers every public type in all eleven
 packages, with a link to the source of each one.
 
 ## The packages you have not met
@@ -25,6 +25,8 @@ You only installed what the track needed. The rest follow the same shape:
 | [TestFramework.Config](../guide/packages/config.md) | configuration and dependency injection setup |
 | [TestFramework.Simple](../guide/packages/simple.md) | inline actions and messages, without a custom step class |
 | [TestFramework.Container.Azure](../guide/packages/container-azure.md) | Azure emulators in Docker |
+| [TestFramework.UI.Browser](../guide/packages/ui-browser.md) | a real browser driving a web application |
+| [TestFramework.Mock](../guide/packages/mock.md) | the system under test in-process, with declared test doubles |
 
 ## When the log is not enough
 

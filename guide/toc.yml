@@ -30,6 +30,8 @@
     href: packages/mock.md
   - name: TestFramework.Web
     href: packages/web.md
+  - name: TestFramework.UI.Browser
+    href: packages/ui-browser.md
   - name: TestFramework.Azure
     href: packages/azure.md
   - name: TestFramework.Container

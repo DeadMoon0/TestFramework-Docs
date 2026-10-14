@@ -10,7 +10,7 @@ dotnet add package TestFramework.Config
 ## Quickstart
 
 ```csharp
-using ServiceProvider serviceProvider = ConfigInstance
+await using ServiceProvider serviceProvider = ConfigInstance
     .FromJsonFile("appsettings.test.json")
     .OverrideConfig("FeatureFlags:UseMockService", "true")
     .AddService((services, configuration) =>
@@ -23,8 +23,8 @@ using ServiceProvider serviceProvider = ConfigInstance
 TimelineRun run = await timeline.SetupRun(serviceProvider).RunAsync();
 ```
 
-Note the `using`. The provider owns every singleton it creates, so the test owns the provider - dispose
-it, or leak whatever it built.
+Note the `await using`. The provider owns every singleton it creates, so the test owns the provider -
+dispose it, asynchronously because some singletons can only be disposed that way, or leak whatever it built.
 
 ## The conceptual model
 
@@ -50,43 +50,42 @@ var providerB = shared.SetupSubInstance().OverrideConfig("Run:Tenant", "B").Buil
 
 `SetupSubInstance()` derives rather than mutates, so one test's override cannot leak into another's.
 
-## ConfigInstance versus typed stores
+## Saying it and asking for it
 
-Other packages expose typed stores - Azure's `ConfigStore<T>`, the web package's API and SQL stores. It
-is easy to read those as a competing setup model. They are not.
+There is one place to say where a resource is, and one place to ask:
 
 | Your question | The answer |
 |---|---|
 | How do I prepare config and services for `SetupRun(...)`? | `ConfigInstance` |
-| How does a module look up a named record like `MainDb` at run time? | that module's typed store, resolved from DI |
-| Must I choose one model for the whole test? | no - start with `ConfigInstance`; typed stores live inside it |
+| How does a step read a named record like `MainSql`? | `context.Configured<T>("MainSql")` |
+| How does a test read a value off a finished run? | `run.Values.Require(ValueRef.For(...))` |
 
-The ownership rule: `ConfigInstance` owns the run's container; typed stores live inside that container
-and answer identifier lookups at run time.
-
-That is why package setup reads as a chained call rather than a separate system:
+A package's `Load*Config()` call says which sections it reads and what each describes; it does not read them.
+The run does, once, before the first step:
 
 ```csharp
 ConfigInstance config = ConfigInstance.FromJsonFile("local.testsettings.json")
-    .LoadWebConfig()      // registers the web package's stores
+    .LoadWebConfig()      // the web package's sections
     .LoadAzureConfig()    // and the Azure package's
     .Build();
 ```
+
+`Configured<T>` does not say whether a person wrote the address down or a container decided it while
+starting. That is what lets the same timeline run against a deployed resource and a containerized one.
 
 ## Decision guide
 
 - JSON files, a few overrides, ordinary service registration → `ConfigInstance`.
 - A reusable base with per-test variants → build one, then `SetupSubInstance()`.
-- A module needs named records such as `MainSql` or `Default` → still `ConfigInstance` for setup; treat
-  the typed store as an implementation detail consumed from DI.
+- A step needs a named record such as `MainSql` or `Default` → `context.Configured<T>(identifier)`.
 
 ## Troubleshooting
 
 **A module cannot find its identifier.** The relevant `Load*Config()` call is missing. Some of them are
-required even when the settings file has no matching section, because they register the store that the
+required even when the settings file has no matching section, because they declare the section the
 environment publishes into.
 
-**Singletons outliving the test.** The provider was not disposed. `using` on the provider, not on the
+**Singletons outliving the test.** The provider was not disposed. `await using` on the provider, not on the
 `ConfigInstance`.
 
 ## Going deeper

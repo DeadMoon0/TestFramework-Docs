@@ -98,10 +98,10 @@ run.SqlScalar<int>("count").Should().Be(1);
 A seeded row is owned, so teardown removes it.
 
 > [!WARNING]
-> Do not read that as "found things are safe". Whether teardown deletes an artifact depends on the
-> **reference**, never on the verb that put it there - and some finders hand back deletable references.
-> The web package's SQL finder does not, so a row found here is left alone; Azure's Cosmos and Table
-> Storage finders do, so a found item there **is deleted** when the run ends.
+> Do not read that as "found things are safe". Teardown deletes by default, whichever verb put the
+> artifact there. **No shipped finder is read-only** - the web package's SQL finder, the LocalIO folder
+> finder and all three Azure finders hand back references teardown can delete, so a row found here **is
+> deleted** when the run ends unless the step that found it says `MarkReadonly()`.
 >
 > Before pointing any timeline at data you did not create, read
 > [ownership lives on the reference](artifacts.md#teardown-deletes---unless-you-say-otherwise).

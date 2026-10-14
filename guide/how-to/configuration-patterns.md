@@ -61,10 +61,13 @@ because the environment rewrites them to the endpoints it created.
 ## Dispose the provider
 
 ```csharp
-using ServiceProvider serviceProvider = ConfigInstance
+await using ServiceProvider serviceProvider = ConfigInstance
     .FromJsonFile("appsettings.test.json")
     .BuildServiceProvider();
 ```
+
+Dispose it asynchronously. Some singletons - the Azure package's client cache among them - can only be
+disposed that way, and a synchronous `Dispose` of a provider holding one throws after the run passed.
 
 The provider owns every singleton it creates. A test class that builds one per test and disposes none will
 accumulate HTTP clients, database connections and container handles until something gives.

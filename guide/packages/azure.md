@@ -15,8 +15,8 @@ ConfigInstance config = ConfigInstance.FromJsonFile("local.testSettings.json")
     .Build();
 ```
 
-`LoadAzureConfig()` reads named records out of the configuration sections and populates the typed stores
-the Azure steps resolve at run time.
+`LoadAzureConfig()` says which configuration sections this package reads and what each one describes. The
+run reads them once, before the first step, and a malformed entry fails the run there.
 
 ## Start here
 
@@ -45,19 +45,17 @@ Timelines name the identifier; the record supplies the connection details. That 
 the same timeline run against live Azure or against
 [emulators in Docker](container-azure.md) with no change to the plan.
 
-## Config: one setup model, several stores
+## Config: one place to say it, one place to ask
 
-`ConfigInstance` remains the setup entry point. `ConfigStore<T>` is not a competing model - it is the
-Azure package's typed runtime registry for named records.
+`ConfigInstance` is where a resource is said to be. Everything else asks the run:
 
-The shape stays:
+1. build the run's provider from a `ConfigInstance` with `LoadAzureConfig()`,
+2. in a step, ask for a record by identifier: `context.Configured<SqlDatabaseConfig>("MainSql")`,
+3. on a finished run, ask for one value: `run.Values.Require(ValueRef.For(...))`.
 
-1. build the run provider with `ConfigInstance`,
-2. let `LoadAzureConfig()` populate the typed stores inside DI,
-3. let Azure steps and finders resolve those stores by identifier at run time.
-
-When you see `ConfigStore<T>` in an advanced sample, read it as a lookup service inside the provider, not
-as a second top-level configuration system you must choose between.
+There is no store to look records up in. An address someone wrote down and an address a
+[container](container-azure.md) published while starting answer the same call, which is what lets one
+timeline run against both.
 
 ## Output bindings are explicit results
 
