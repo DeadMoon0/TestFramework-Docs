@@ -32,11 +32,10 @@ name: Publish documentation
 # installed by `dotnet tool restore`. A runner that cannot reach that host still produces a site: the
 # build warns which packages lost their symbols and those types carry no view-source link.
 #
-# TWO THINGS MUST BE TRUE BEFORE THIS CAN GO GREEN, neither of them a fault in this pipeline:
-#   * The TestFramework package chain must be on nuget.org. Build-Docs.ps1 restores from the public
-#     feed, and the Showroom deliberately pins published versions only.
-#   * The Showroom submodule must point at a commit whose chapters carry //doc: narration. Until then,
-#     use the workflow_dispatch input below to downgrade that from an error to a warning.
+# PUBLISHED PACKAGES ONLY. Build-Docs.ps1 restores from nuget.org, and the Showroom pins published
+# versions, so a Showroom commit that moves onto an unreleased package wave fails here until that wave
+# is on the feed. Chapters without //doc: narration are an error; the workflow_dispatch input below
+# downgrades that to a warning for a one-off run.
 
 on:
   push:
