@@ -118,10 +118,20 @@ internal sealed class CapturedOutput
     /// The two are stored apart on purpose: content is committed so any clone can render a panel, while
     /// a duration is true of one run on one machine and is never committed. A build with no measurements
     /// file therefore shows no timings, which is the honest outcome - it measured none.
+    /// <para>
+    /// Only measurements of the same Showroom commit are applied. Paired with another commit's content, the page
+    /// would state a capture date and a commit that cannot both be true, and time code it is not showing.
+    /// </para>
     /// </remarks>
-    public void ApplyMeasurements(CapturedOutput measurements)
+    /// <returns>False when the measurements belong to a different commit and were ignored.</returns>
+    public bool ApplyMeasurements(CapturedOutput measurements)
     {
         ArgumentNullException.ThrowIfNull(measurements);
+
+        if (!string.Equals(measurements.CapturedFromCommit, CapturedFromCommit, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
 
         CapturedAt = measurements.CapturedAt;
         CapturedIn = measurements.CapturedIn;
@@ -133,6 +143,8 @@ internal sealed class CapturedOutput
                 outcome.DurationMs = measured.DurationMs;
             }
         }
+
+        return true;
     }
 
     /// <summary>

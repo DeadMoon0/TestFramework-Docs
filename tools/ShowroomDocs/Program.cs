@@ -60,7 +60,13 @@ internal static class Program
         // Timings, if this run has any. Without them the panels simply show no duration.
         if (!string.IsNullOrWhiteSpace(measuredPath) && File.Exists(measuredPath))
         {
-            captured.ApplyMeasurements(CapturedOutput.Load(measuredPath));
+            CapturedOutput measured = CapturedOutput.Load(measuredPath);
+            if (!captured.ApplyMeasurements(measured))
+            {
+                Console.Error.WriteLine(
+                    $"warning: the measurements in {measuredPath} are of Showroom commit {measured.CapturedFromCommit}, " +
+                    $"the committed output of {captured.CapturedFromCommit}; no timings are shown.");
+            }
         }
 
         string? commit = CurrentCommit(showroom);
