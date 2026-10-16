@@ -126,6 +126,15 @@ jobs:
             8.0.x
             10.0.x
 
+      # The UI chapters skip when no browser is found, and a skip would overwrite the committed passing panels.
+      # The runner has no browser Playwright drives, so the UI lane installs Chromium from its own build output -
+      # the same Playwright version the chapters run against.
+      - name: Install a browser for the UI lane
+        if: matrix.lane == 'TestFramework.Showroom.UI'
+        run: |
+          dotnet build Modules/TestFramework-Showroom/TestFramework.Showroom.UI -c Release
+          pwsh Modules/TestFramework-Showroom/TestFramework.Showroom.UI/bin/Release/net8.0/playwright.ps1 install --with-deps chromium
+
       - name: Capture ${{ matrix.lane }} (${{ matrix.chapters }} chapters)
         run: |
           pwsh ./Capture-ShowroomOutput.ps1 \
