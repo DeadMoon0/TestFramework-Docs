@@ -60,12 +60,21 @@ shared test stack wants each component to describe its own shape.
 generally need a `CosmosClientOptions` override with `DangerousAcceptAnyServerCertificateValidator`. That
 is emulator-specific and should not follow you to the live path.
 
-## A documentation gap, stated plainly
+## Troubleshooting
 
-This package is the one place where the generated [API reference](../../api/index.md) is thinner than its
-siblings: its public surface is not yet fully covered by XML documentation, and the reference shows those
-gaps rather than hiding them. Prose here and in the repository's architecture notes is the better source
-until that pass is done.
+- **Docker is missing, stopped, or serving Windows containers:** the run is refused before anything starts,
+  and the refusal says which.
+- **A resource was never created:** check that the timeline's steps or the environment's requirements
+  actually use the definition that owns it. An included definition nobody uses is available, not activated.
+- **Service Bus does not start:** check the topology (`ConfigureServiceBusTopology`) and the SQL container
+  the emulator stores its state in, in that order.
+- **Cosmos fails after the emulator started:** check the client options, and that the test process talks to
+  the mapped endpoint the environment published rather than a fixed port.
+- **`CONTAINER1006` / "Failed to download" while building an image from a project:** usually a broken IPv6
+  path to the registry. It is detected and worked around without any change to the machine — the image is
+  built from a local publish, or pulled over IPv4 and loaded — and the run log says what was done. The
+  [repository README](https://github.com/DeadMoon0/TestFramework-Container/blob/main/README.md#troubleshooting)
+  explains the cause and the one case (Docker Hub images) that needs a single manual `docker pull`.
 
 ## Going deeper
 

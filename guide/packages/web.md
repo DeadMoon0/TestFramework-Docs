@@ -136,6 +136,21 @@ and expect it to be shared.
 
 **Auth includes Windows Negotiate**, configured per identifier rather than per request.
 
+## Troubleshooting
+
+| Symptom | Cause and fix |
+|---|---|
+| `No API configuration was registered for identifier 'x'` | The `Api:x` section is missing, or `LoadWebConfig()` was not called. The message lists the identifiers that are registered. |
+| `API 'x' did not answer ...` | Transport failure. The message names the authority to check, and suggests the timeout or certificate setting when those are the likely cause. |
+| `401` or `403` against a Windows-authenticated API | Set `Auth` to `Negotiate` for that identifier. |
+| A local host answers `404` right after start | Put `WebExt.Api.IsLive("x", ApiAlivenessLevel.Healthy)` in front of the calls; it waits out a starting loopback host for a bounded window. |
+| `No key column could be determined for 'T'` | Register the model, annotate the key with `[Key]`, or name it `Id`. |
+| A stub assertion sees no calls | Check `StubUnmatchedCalls` first: the application may have called a path no mapping covers. |
+| A stub assertion sees calls that are not this run's | A concurrent run against the same stub is not excluded by `Reset`. Filter on a header the application forwards, or give the run its own stub. |
+
+The [package README](https://github.com/DeadMoon0/TestFramework-Web/blob/main/TestFramework.Web/README.md#troubleshooting)
+has the full table, including SQL scripts and stub resets.
+
 ## Going deeper
 
 - [Learn: your first real system](../../learn/first-real-system.md)
