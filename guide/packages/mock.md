@@ -1,7 +1,7 @@
 # TestFramework.Mock
 
 The system under test, hosted in-process: your application's own service composition, with chosen
-dependencies replaced by declared test doubles. Public entry points are `MockDefinition<TService>`,
+dependencies replaced by declared test doubles. Public entry points are `MockPack<TService>`,
 `MockEnvironment`, `MockExt.Host` and `MockArtifactFinder`.
 
 ```bash
@@ -10,10 +10,10 @@ dotnet add package TestFramework.Mock
 
 ## Quickstart
 
-A Mock-Pack declares one double, once:
+A pack declares one double, once:
 
 ```csharp
-public sealed class MailSenderPack : MockDefinition<IMailSender>
+public sealed class MailSenderPack : MockPack<IMailSender>
 {
     protected override void Configure(MockBuilder<IMailSender> mock)
     {
@@ -41,7 +41,7 @@ Timeline timeline = Timeline.Create()
 TimelineRun run = await timeline.SetupRun().SetEnv(environment).RunAsync();
 
 run.EnsureRanToCompletion();
-Assert.True(run.MockResult<bool>("register"));
+Assert.True(run.HostResult<bool>("register"));
 Assert.Equal(1, run.Mock<IMailSender>().CountCalls(m => m.SendAsync("ada@example.com", MockArg.Any<string>())));
 Assert.Equal("ada@example.com: Welcome", run.ArtifactStore.GetMockArtifact("sentMail").Last.Payload);
 ```
