@@ -93,8 +93,8 @@ several in one timeline.
 
 **`UiBrowserNotInstalledException`.** The configured engine is not on this machine. Set
 `"Channel": "msedge"` to use an installed Edge, call `BrowserExt.Tooling.InstallBrowsers("chromium")` once
-from a fixture, or run Playwright's install command by hand. CI opts into the download with
-`TESTFRAMEWORK_UI_AUTOINSTALL=1`.
+from a fixture, or run Playwright's install command by hand. The package never downloads a browser on its
+own.
 
 **`UiConfigurationException` before the first step.** An identifier has no entry, no `Browser`, or no
 address - or two. The message lists the identifiers that are registered. A branded build (`msedge`,

@@ -10,7 +10,7 @@ dotnet add package TestFramework.Azure
 ## Minimal setup
 
 ```csharp
-ConfigInstance config = ConfigInstance.FromJsonFile("local.testSettings.json")
+ConfigInstance config = ConfigInstance.FromJsonFile("local.testsettings.json")
     .LoadAzureConfig()
     .Build();
 ```
@@ -82,7 +82,7 @@ readable path.
 > only meant to read:
 >
 > ```csharp
-> timeline.FindArtifact("order", AzureExt.Artifacts.Cosmos.Query<Order>(...)).MarkReadonly()
+> timeline.FindArtifact("order", AzureExt.ArtifactFinder.DB.CosmosQuery<Order>("MainCosmos", query)).MarkReadonly()
 > ```
 >
 > See [deleting is the default](../concepts/artifacts.md#deleting-is-the-default-and-markreadonly-is-the-opt-out).
@@ -96,8 +96,9 @@ identifier disagree. The identifier is the child object's name, not the section'
 override with `DangerousAcceptAnyServerCertificateValidator`. That is emulator-specific, not a general
 setting.
 
-**Service Bus receives nothing.** The topology has to exist before the wait does. Prefer configuring it
-explicitly through `ConfigureServiceBusTopology(...)` rather than assuming it.
+**Service Bus receives nothing.** The topology has to exist before the wait does: the queue, topic or
+subscription is created in the namespace first. Against the Docker emulator, see
+[Container.Azure](container-azure.md#troubleshooting).
 
 ## Going deeper
 
