@@ -15,7 +15,7 @@ Timeline timeline = Timeline.Create()
 
 // No AddVariable("cmdCommand", ...) - this throws from SetupRun/RunAsync, not from the command.
 await Assert.ThrowsAsync<IOContractViolationException>(() =>
-    timeline.SetupRun(outputHelper).RunAsync());
+    timeline.SetupRun(outputHelper.WriteLine).RunAsync());
 ```
 
 These are the cheapest failures you can have: nothing was started, so nothing needs cleaning up. The
@@ -47,7 +47,7 @@ the same way everywhere:
 ```csharp
 Timeline.Create()
     .Trigger(new EventuallySuccessfulStep(probe))
-        .Name("transient")
+        .Label("transient")
         .WithRetry(3, CalcDelays.Fixed(TimeSpan.Zero))
     .Build();
 ```
@@ -58,7 +58,7 @@ immediately is the wrong move.
 
 ## Bound a wait to something shorter than ten minutes
 
-Every step already has a deadline. `TimeOutOptions` defaults to **10 minutes**, and the runner enforces
+Every step already has a deadline. `TimeoutOptions` defaults to **10 minutes**, and the runner enforces
 it by cancelling the step's own cancellation token - so a wait for something that never arrives fails
 rather than hanging the suite forever.
 
@@ -67,8 +67,8 @@ minutes you spend before learning anything, so give a wait the deadline it actua
 
 ```csharp
 .WaitForEvent(LocalIOExt.Events.FileExists(Var.Ref<string>("missingPath")))
-    .WithTimeOut(TimeSpan.FromMilliseconds(150))
-    .Name("wait-for-never")
+    .WithTimeout(TimeSpan.FromMilliseconds(150))
+    .Label("wait-for-never")
 ```
 
 Two things follow from the deadline being enforced by cancellation:

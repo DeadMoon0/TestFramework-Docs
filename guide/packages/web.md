@@ -31,12 +31,12 @@ ConfigInstance config = ConfigInstance.FromJsonFile("local.testsettings.json")
     .Build();
 
 Timeline timeline = Timeline.Create()
-    .SetVariable("itemId", Var.Const("2"))
-    .Trigger(WebExt.Api.IsLive("sample", ApiAlivenessLevel.Healthy)).Name("live")
+    .SetVariable("itemId", "2")
+    .Trigger(WebExt.Api.IsLive("sample", ApiAlivenessLevel.Healthy)).Label("live")
     .Trigger(WebExt.Api.Http("sample")
         .Get("api/items/{id}")
         .WithRouteValue("id", Var.Ref<string>("itemId"))
-        .Call()).Name("get-item")
+        .Call()).Label("get-item")
     .Build();
 
 TimelineRun run = await timeline.SetupRun(config).RunAsync();
@@ -75,10 +75,10 @@ This also means `Get(...)` does not retry a 404 away. When a locally started hos
 put `IsLive(...)` in front: that step absorbs the startup 404 or 503, and the call you are testing stays
 honest.
 
-## Liveness has two levels
+## Liveness has three levels
 
-`Reachable` proves the socket opened. `Healthy` proves the health path answered. Different questions, kept
-separate on purpose.
+`Reachable` proves the socket opened. `Healthy` proves the health path answered. `Authenticated` proves the
+configured credentials are accepted. Different questions, kept separate on purpose.
 
 ```csharp
 run.ApiProbe("live").Select(probe => probe.Success).Should().Be(true);
@@ -88,9 +88,9 @@ run.ApiProbe("live").Select(probe => probe.Success).Should().Be(true);
 
 ```csharp
 Timeline.Create()
-    .Trigger(WebExt.Sql.IsLive("orders-db", SqlAlivenessLevel.Database)).Name("live")
+    .Trigger(WebExt.Sql.IsLive("orders-db", SqlAlivenessLevel.Database)).Label("live")
     .SetupArtifact("seeded")
-    .Trigger(WebExt.Sql.Scalar<int>("orders-db", "SELECT COUNT(1) FROM [Orders]")).Name("count")
+    .Trigger(WebExt.Sql.Scalar<int>("orders-db", "SELECT COUNT(1) FROM [Orders]")).Label("count")
     .Build();
 ```
 
@@ -112,8 +112,8 @@ A SQL script executes as one session, so `#temp` tables, `SET` options and a tra
 
 ```csharp
 .WaitForEvent(WebExt.Stub.Called("pricing", HttpMethod.Post, "/api/quotes"))
-    .WithTimeOut(TimeSpan.FromSeconds(30)).Name("quoted")
-.Trigger(WebExt.Stub.Calls("pricing")).Name("audit")
+    .WithTimeout(TimeSpan.FromSeconds(30)).Label("quoted")
+.Trigger(WebExt.Stub.Calls("pricing")).Label("audit")
 ```
 
 ```csharp

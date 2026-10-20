@@ -4,7 +4,7 @@ A timeline is the plan. You compose it once, freeze it, and then execute it as o
 
 ```csharp
 Timeline timeline = Timeline.Create()
-    .SetVariable("name", Var.Const("Alex"))
+    .SetVariable("name", "Alex")
     .Build();
 ```
 

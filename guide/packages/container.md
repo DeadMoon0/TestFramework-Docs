@@ -15,7 +15,7 @@ dotnet add package TestFramework.Container
 
 | Type | Purpose |
 |---|---|
-| `ContainerSource` | declares where an application comes from: an image, a project, a directory, a type |
+| `ContainerSource` | declares where an application comes from: an image, a project or a directory |
 | `ContainerSourcePlan` | what will be done to get it there, stated before anything happens |
 | `ContainerImageBuilder` | carries a plan out, producing an image or a directory |
 | `ProjectQuery` | asks MSBuild what a project is, instead of inferring it from paths |
@@ -33,7 +33,7 @@ mysterious.
 
 ## Three things it does without being asked
 
-**It finds the Docker daemon on Windows.** `ContainerRuntime.EnsureInitialized` runs as the first statement
+**It finds the Docker daemon on Windows.** `ContainerRuntime.EnsureReadyAsync(...)` runs as the first statement
 of the network component in both environments. The client library does not probe for Docker Desktop's
 named pipe, and the pipe name differs between installations, so this points `DOCKER_HOST` at whichever one
 exists - logging the choice, and changing nothing when `DOCKER_HOST` is already set.
@@ -59,8 +59,8 @@ is a missing version of this check.
 Two habits carry most of the weight:
 
 1. **Ask, do not infer.** `ProjectQuery` exists because guessing a project's output path from its
-   directory is wrong often enough to matter. `ContainerOutputResolver` - the inferring road - is kept for
-   older definitions rather than recommended.
+   directory is wrong often enough to matter. `ContainerOutputResolver` no longer infers output at all; it only
+   reads the target framework off an assembly (`ResolveTargetFramework`).
 2. **State the plan before acting.** Produce a `ContainerSourcePlan`, log it, then execute it. A failure
    during the build then has a plan to be read against.
 

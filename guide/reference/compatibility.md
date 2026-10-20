@@ -26,13 +26,19 @@ graph LR
     Container[TestFramework.Container]
     ContainerAzure[TestFramework.Container.Azure]
     ContainerWeb[TestFramework.Container.Web]
+    AzureFunctions[TestFramework.Azure.Functions]
+    UiBrowser[TestFramework.UI.Browser]
+    Mock[TestFramework.Mock]
 
     Core --> Config
     Core --> Simple
     Core --> LocalIO
     Core --> Container
+    Core --> Mock
     Config --> Azure
     Config --> Web
+    Config --> UiBrowser
+    Azure --> AzureFunctions
     Azure --> ContainerAzure
     Web --> ContainerWeb
     Container --> ContainerAzure
@@ -45,8 +51,9 @@ arrives with them whether you asked for it or not. `TestFramework.Container` dep
 it is shared Docker plumbing and knows nothing about Azure or the web - and the two
 `Container.*` packages are where a transport and that plumbing meet.
 
-For releasing, the order that matters is a topological walk of the same graph: Core, then Config and
-Simple, then Azure, LocalIO and Web, then Container, then Container.Azure and Container.Web. A
+For releasing, the order that matters is a topological walk of the same graph: Core, then Config,
+Simple, LocalIO and Mock, then Azure, Web and UI.Browser, then Azure.Functions and Container, then
+Container.Azure and Container.Web. A
 dependency has to exist on nuget.org before a dependent can ship a version that requires it.
 
 In practice `TestFramework.Core` is the only package you must install deliberately. Everything else is
@@ -57,8 +64,11 @@ additive:
 | `TestFramework.Config` | configuration and dependency injection setup |
 | `TestFramework.Simple` | small flows, with lightweight triggers |
 | `TestFramework.Azure` | Function Apps, Logic Apps, Service Bus, Storage, Cosmos, SQL |
+| `TestFramework.Azure.Functions` | a Function App's HTTP handlers in-process, endpoints from their attributes |
 | `TestFramework.LocalIO` | shell commands and file artifacts |
 | `TestFramework.Web` | REST APIs, SQL Server behind them, stubbed dependencies |
+| `TestFramework.UI.Browser` | a web application in a real browser |
+| `TestFramework.Mock` | the system under test in-process, with declared test doubles |
 | `TestFramework.Container` | the container source model the Docker lanes share |
 | `TestFramework.Container.Azure` | the above Azure components against emulators in Docker |
 | `TestFramework.Container.Web` | the above web components against containers |
@@ -69,8 +79,3 @@ Every package is built with SourceLink and produces a symbol package (`.snupkg`)
 step from your test into the framework's own source. The same data puts a **View source** link on every
 type in the [API reference](../../api/index.md), and is why each link lands in that package's own
 repository rather than in a single monolith.
-
-> [!NOTE]
-> Symbol packages are a recent addition. Until a release carries them, `TestFramework.LocalIO` is the
-> only package with a published `.snupkg`; the rest can still be read on GitHub through the reference's
-> view-source links.

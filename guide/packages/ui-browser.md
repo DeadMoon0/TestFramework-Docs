@@ -30,7 +30,7 @@ Then write the timeline:
 
 ```csharp
 ConfigInstance config = ConfigInstance.FromJsonFile("local.testsettings.json")
-    .LoadUIConfig()
+    .LoadUiConfig()
     .Build();
 
 Timeline timeline = Timeline.Create()
@@ -38,7 +38,7 @@ Timeline timeline = Timeline.Create()
         .Navigate("/products")
         .Click("Add Anvil to cart")
         .Expect("1 item in cart"))
-        .Name("cart")
+        .Label("cart")
     .Build();
 
 TimelineRun run = await timeline.SetupRun(config).RunAsync();
@@ -83,6 +83,32 @@ Two addresses for one name are refused before the run starts, rather than one si
 Viewport, device, channel and headlessness live in configuration too, so the same timeline runs as a
 desktop and as a phone by pointing at a second entry with a `Device`.
 
+## A browser on a pipeline agent
+
+A run checks, while it is planned, that the exact browser build this version of Playwright launches is on
+the machine, and refuses before anything starts when it is not - naming the build it needs. Three ways to
+have it:
+
+- **Use a browser the agent already has.** GitHub's hosted Windows and Ubuntu runners come with Chrome and
+  Edge: `"Channel": "chrome"` or `"msedge"`, nothing to download.
+- **Install it in the pipeline**, before the tests, with the Playwright of the test project:
+
+  ```yaml
+  - run: dotnet build
+  - uses: actions/cache@v4
+    with:
+      path: ~/.cache/ms-playwright
+      key: playwright-${{ runner.os }}-${{ hashFiles('**/packages.lock.json', '**/*.csproj') }}
+  - run: pwsh tests/MyTests/bin/Debug/net8.0/playwright.ps1 install --with-deps chromium
+  ```
+
+  Key the cache on what pins the Playwright version, or an upgrade restores the old build. `--with-deps`
+  installs the system libraries Linux needs, which takes root - only the pipeline can do that.
+- **Let the run install it**: `"Install": true` on the application entry. The run then installs exactly the
+  build it needs, as a step of its own before the first browser step, and logs what it installed. Playwright's
+  own builds only - a `Channel` is installed with the machine - and on a bare Linux agent the system libraries
+  still need `playwright install-deps` in the pipeline.
+
 ## When not to use it
 
 For a suite that tests only a browser UI and nothing behind it, Playwright's own tooling - UI mode, trace
@@ -91,10 +117,10 @@ several in one timeline.
 
 ## Troubleshooting
 
-**`UiBrowserNotInstalledException`.** The configured engine is not on this machine. Set
-`"Channel": "msedge"` to use an installed Edge, call `BrowserExt.Tooling.InstallBrowsers("chromium")` once
-from a fixture, or run Playwright's install command by hand. The package never downloads a browser on its
-own.
+**`UiBrowserNotInstalledException`, before the first step.** The browser build the run needs is not on
+this machine. Use an installed browser with `"Channel": "msedge"` or `"chrome"`, install it in the pipeline,
+or set `"Install": true` - see [A browser on a pipeline agent](#a-browser-on-a-pipeline-agent). Without
+`"Install": true` the package never downloads a browser on its own.
 
 **`UiConfigurationException` before the first step.** An identifier has no entry, no `Browser`, or no
 address - or two. The message lists the identifiers that are registered. A branded build (`msedge`,

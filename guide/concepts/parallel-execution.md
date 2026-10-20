@@ -32,10 +32,10 @@ order-independent by nature, and that is where the free parallelism is.
 
 ```csharp
 private readonly Timeline _timeline = Timeline.Create()
-    .SetVariable("greeting", Var.Const("Good morning"))
-        .Name("set greeting")
-    .SetVariable("subject", Var.Const("test subject"))
-        .Name("set subject")
+    .SetVariable("greeting", "Good morning")
+        .Label("set greeting")
+    .SetVariable("subject", "test subject")
+        .Label("set subject")
     .Build();
 ```
 
@@ -46,8 +46,8 @@ report tells you what the planner decided, so you never have to infer it.
 ## Opting one step out
 
 ```csharp
-.SetVariable("exclusive", Var.Const("..."))
-    .Name("exclusive bulletin")
+.SetVariable("exclusive", "...")
+    .Label("exclusive bulletin")
     .DoNotParallelize()
 ```
 

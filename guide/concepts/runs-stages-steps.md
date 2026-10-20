@@ -9,7 +9,7 @@ stage holds **steps**.
 provider, the environment, variables, artifact data, and the output helper. `RunAsync()` executes it.
 
 ```csharp
-TimelineRun run = await timeline.SetupRun(serviceProvider, outputHelper)
+TimelineRun run = await timeline.SetupRun(serviceProvider, outputHelper.WriteLine)
     .AddVariable("orderId", "42")
     .RunAsync();
 ```
@@ -37,13 +37,13 @@ can be configured inline:
 
 ```csharp
 .Trigger(SimpleExt.Trigger.Message("hello"))
-    .Name("greet")
+    .Label("greet")
     .WithRetry(3, CalcDelays.Fixed(TimeSpan.Zero))
-    .WithTimeOut(TimeSpan.FromSeconds(5))
+    .WithTimeout(TimeSpan.FromSeconds(5))
 ```
 
-Four modifiers cover nearly everything: `Name(...)` for assertion handles, `WithRetry(...)` for
-transient failure, `WithTimeOut(...)` for bounded waiting, and `DoNotParallelize()` for exclusivity.
+Four modifiers cover nearly everything: `Label(...)` for assertion handles, `WithRetry(...)` for
+transient failure, `WithTimeout(...)` for bounded waiting, and `DoNotParallelize()` for exclusivity.
 
 ## Phases: why authored order survives
 

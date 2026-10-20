@@ -7,18 +7,18 @@ frozen plan plus per-run variables is what lets one timeline serve many cases.
 
 | Source | Written as | Known when |
 |---|---|---|
-| A literal in the plan | `Var.Const(value)` | authoring |
+| A literal in the plan | `SetVariable("name", value)` | authoring |
 | An input supplied per run | `Var.Ref<T>("name")` + `AddVariable("name", value)` | run setup |
 | Something a step produced | `GetExitCode("name")` and friends | during the run |
 
 ```csharp
 Timeline timeline = Timeline.Create()
-    .SetVariable("greeting", Var.Const("Good morning"))
+    .SetVariable("greeting", "Good morning")
     .Trigger(LocalIOExt.Trigger.Cmd(Var.Ref<string>("cmdCommand")))
     .GetExitCode("ExitCode")
     .Build();
 
-TimelineRun run = await timeline.SetupRun(outputHelper)
+TimelineRun run = await timeline.SetupRun(outputHelper.WriteLine)
     .AddVariable("cmdCommand", "echo hello")
     .RunAsync();
 ```
@@ -59,7 +59,7 @@ reference:
 ```csharp
 .ForEach(["Alice", "Bob", "Charlie"], "item", loop =>
 {
-    loop.Trigger(SimpleExt.Trigger.Message(Var.Ref<string>("item"))).Name("greet");
+    loop.Trigger(SimpleExt.Trigger.Message(Var.Ref<string>("item"))).Label("greet");
 })
 ```
 

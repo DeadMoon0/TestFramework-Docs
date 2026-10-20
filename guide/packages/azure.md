@@ -35,6 +35,9 @@ The three canonical flows:
 | Service Bus | send with `AzureExt.Trigger.ServiceBus.Send(...)`, then wait with `AzureExt.Event.ServiceBus.MessageReceived(...)` |
 | Logic App | `CallAndCapture()` for stateless workflows; `Call()` plus `RunCompleted(...)` for stateful ones |
 
+Running a Function App's handlers in the test process, or picking an endpoint by its attributes, needs the
+Function App's own code and lives in [TestFramework.Azure.Functions](azure-functions.md).
+
 For data systems, start with a single artifact or a single finder against one named identifier before
 composing an end-to-end scenario.
 
@@ -51,7 +54,7 @@ the same timeline run against live Azure or against
 
 1. build the run's provider from a `ConfigInstance` with `LoadAzureConfig()`,
 2. in a step, ask for a record by identifier: `context.Configured<SqlDatabaseConfig>("MainSql")`,
-3. on a finished run, ask for one value: `run.Values.Require(ValueRef.For(...))`.
+3. on a finished run, ask for one value: `run.Values.Require(ValueRef.For(...), ResourceVantage.Host)`.
 
 There is no store to look records up in. An address someone wrote down and an address a
 [container](container-azure.md) published while starting answer the same call, which is what lets one
@@ -74,15 +77,15 @@ readable path.
 
 > [!WARNING]
 > All three finders in this package hand back deconstructable references, so an artifact they discover
-> **is removed at teardown**: `CosmosDbItemArtifactQueryFinder`, `TableStorageEntityArtifactQueryFinder`
-> and `SqlEFCoreArtifactQueryFinder`. That is the framework-wide default rather than anything specific to
+> **is removed at teardown**: `CosmosDbItemArtifactQueryFinder`, `StorageAccountTableEntityArtifactQueryFinder`
+> and `SqlDatabaseRowArtifactQueryFinder`. That is the framework-wide default rather than anything specific to
 > Azure - no shipped finder is read-only.
 >
 > Against a shared or live store, do not rely on `FindArtifact(...)` being read-only. Protect what you
 > only meant to read:
 >
 > ```csharp
-> timeline.FindArtifact("order", AzureExt.ArtifactFinder.DB.CosmosQuery<Order>("MainCosmos", query)).MarkReadonly()
+> timeline.FindArtifact("order", AzureExt.ArtifactFinder.DB.CosmosDbQuery<Order>("MainCosmos", query)).MarkReadonly()
 > ```
 >
 > See [deleting is the default](../concepts/artifacts.md#deleting-is-the-default-and-markreadonly-is-the-opt-out).

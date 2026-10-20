@@ -28,7 +28,7 @@ Every assertion starts from a handle, and a handle is looked up by name:
 | `run.SqlScalar<T>("name")`, `run.SqlRow<T>("name")` | a SQL step's result |
 | `run.StubCall("name")`, `run.StubUnmatchedCalls("name")` | what a stub received |
 
-Names come from `.Name("...")` on the step, or from the artifact or variable identifier. Name the things
+Names come from `.Label("...")` on the step, or from the artifact or variable identifier. Name the things
 you will assert on; leave the rest anonymous.
 
 ## Chaining and projection

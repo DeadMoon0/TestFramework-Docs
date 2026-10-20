@@ -18,7 +18,7 @@ private readonly Timeline _timeline = Timeline.Create()
     .Build();
 
 // ...
-var run = await this._timeline.SetupRun(outputHelper)
+var run = await this._timeline.SetupRun(outputHelper.WriteLine)
     .AddFileArtifact("declaredFile", artifactPath, "declared then populated")
     .RunAsync();
 

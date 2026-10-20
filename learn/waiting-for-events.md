@@ -20,13 +20,13 @@ No `Task.Delay`, no retry loop, no "it works on my machine because my machine is
 
 ## Give a wait a deadline shorter than the default
 
-Every step already has one: `TimeOutOptions` defaults to 10 minutes. So an unbounded wait fails
+Every step already has one: `TimeoutOptions` defaults to 10 minutes. So an unbounded wait fails
 eventually rather than hanging forever - but ten minutes of a test doing nothing is a long time to wait
 for that news. State the deadline the wait actually deserves:
 
 ```csharp
 .WaitForEvent(LocalIOExt.Events.FileExists(Var.Const(outputPath)))
-    .WithTimeOut(TimeSpan.FromSeconds(10))
+    .WithTimeout(TimeSpan.FromSeconds(10))
 ```
 
 On timeout, the event reports what it was watching - the resolved path, not the template - so a

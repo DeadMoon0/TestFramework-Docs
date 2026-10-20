@@ -6,7 +6,7 @@ timeline run against an in-process fake, a container, or a deployed system witho
 ## The shape
 
 ```csharp
-TimelineRun run = await timeline.SetupRun(serviceProvider, outputHelper)
+TimelineRun run = await timeline.SetupRun(serviceProvider, outputHelper.WriteLine)
     .SetEnv(DockerWebEnvironment.For<SampleSqlDefinition>())
     .RunAsync();
 ```
@@ -71,9 +71,9 @@ component alive across runs while per-run components stay per-run:
 - a worker component that depends on it is still fresh for every run,
 - so you get freshness where it matters and reuse where rebuilding would be waste.
 
-Create one with the asynchronous factory rather than the constructor - constructing one blocks the
-calling thread for the whole bootstrap and can deadlock under a synchronisation context, which is why
-that overload is obsolete.
+Create one with `PersistentEnvironmentContext<TSetup>.CreateAsync(...)` (or
+`ConfigPersistentEnvironmentContext<TSetup>.CreateAsync(...)`); there is no public constructor, so the bootstrap
+never blocks a calling thread.
 
 ## Choosing where a test runs
 

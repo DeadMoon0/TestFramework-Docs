@@ -6,7 +6,7 @@ the run somewhere to report to.
 ## First: attach the output helper
 
 ```csharp
-TimelineRun run = await timeline.SetupRun(outputHelper).RunAsync();
+TimelineRun run = await timeline.SetupRun(outputHelper.WriteLine).RunAsync();
 ```
 
 Without it the run executes in silence, and every question below becomes guesswork. This is the single
@@ -26,7 +26,8 @@ execution. Read it structurally rather than scanning for red:
    box per step with its phase, its layer, its declared inputs and observed outputs, its log per attempt,
    and its final state. This answers *what happened*; everything above answers *what was supposed to*.
 
-Artifacts have no section of their own - they appear where they are used. A step's outputs list each
+The header lists the artifacts present when the run starts (`Artifacts (n)`); beyond that they appear where
+they are used. A step's outputs list each
 artifact with its state (`Setup`, `Cleaned`), and the cleanup stage logs what it did with every one of
 them, including the ones it deliberately left alone and why.
 
@@ -51,7 +52,7 @@ not there, the run's own failures were never raised.
 
 Two techniques beat instrumenting:
 
-- **`Name(...)` the step and assert on it.** `run.Step("create").Should().HaveCompleted()` turns a vague
+- **`Label(...)` the step and assert on it.** `run.Step("create").Should().HaveCompleted()` turns a vague
   failure into a specific one.
 - **`SimpleExt.Trigger.Message(...)`** writes through the run logger, so a marker appears in the report *in
   position* rather than in console output with no context.

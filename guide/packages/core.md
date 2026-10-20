@@ -14,8 +14,8 @@ dotnet add package TestFramework.Core
 public class SampleIntegrationTest
 {
     private static readonly Timeline _timeline = Timeline.Create()
-        .SetVariable("name", Var.Const("Alex"))
-        .Transform("greeting", Var.Ref<string>("name"), name => $"Hello {name}")
+        .SetVariable("name", "Alex")
+        .Transform(Var.Ref<string>("name"), "greeting", name => $"Hello {name}")
         .AssertVariable(Var.Ref<string>("greeting"), greeting => greeting == "Hello Alex")
         .Build();
 
@@ -41,8 +41,8 @@ Four ideas, in the order you meet them:
 - **[Timeline](../concepts/timeline.md)** - the plan, built once and frozen by `Build()`.
 - **Run** - one execution of that plan, created by `SetupRun(...)` and started by `RunAsync()`.
   Runs are isolated from each other.
-- **Variables** - the data channel between steps and between the build and run phases. `Var.Const(...)`
-  for a value known while authoring, `Var.Ref<T>(...)` for one resolved during the run.
+- **Variables** - the data channel between steps and between the build and run phases. a plain value
+  for one known while authoring, `Var.Ref<T>(...)` for one resolved during the run.
 - **Artifacts** - external resources the run creates, tracks and cleans up, so setup and teardown are
   deterministic rather than hopeful.
 
@@ -89,7 +89,7 @@ most on the discover path, where it is easy to assume looking is read-only: see
 **A frozen-timeline exception.** Something tried to author after `Build()`. Timelines are immutable by
 design - build a second timeline instead.
 
-**Nothing appears in the test output.** Pass the xunit `ITestOutputHelper` into `SetupRun(...)`;
+**Nothing appears in the test output.** Pass the xunit `ITestOutputHelper`'s `WriteLine` into `SetupRun(...)`;
 without it the run executes silently.
 
 ## Going deeper

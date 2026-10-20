@@ -10,8 +10,8 @@ run-specific inputs, and assert against an immutable result.
 
 ```csharp
 Timeline timeline = Timeline.Create()
-    .SetVariable("name", Var.Const("Alex"))
-    .Transform("greeting", Var.Ref<string>("name"), name => $"Hello {name}")
+    .SetVariable("name", "Alex")
+    .Transform(Var.Ref<string>("name"), "greeting", name => $"Hello {name}")
     .AssertVariable(Var.Ref<string>("greeting"), greeting => greeting == "Hello Alex")
     .Build();
 

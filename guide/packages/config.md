@@ -58,7 +58,7 @@ There is one place to say where a resource is, and one place to ask:
 |---|---|
 | How do I prepare config and services for `SetupRun(...)`? | `ConfigInstance` |
 | How does a step read a named record like `MainSql`? | `context.Configured<T>("MainSql")` |
-| How does a test read a value off a finished run? | `run.Values.Require(ValueRef.For(...))` |
+| How does a test read a value off a finished run? | `run.Values.Require(ValueRef.For(...), ResourceVantage.Host)` |
 
 A package's `Load*Config()` call says which sections it reads and what each describes; it does not read them.
 The run does, once, before the first step:

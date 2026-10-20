@@ -5,7 +5,7 @@ data - and the framework will print the whole thing for you if you let it.
 
 ## Let the run talk
 
-Pass the xunit output helper into `SetupRun(...)` and the run reports itself:
+Pass the xunit output helper's `WriteLine` into `SetupRun(...)` and the run reports itself:
 
 ```csharp
 public class DebugOutput(ITestOutputHelper outputHelper)
@@ -17,7 +17,7 @@ public class DebugOutput(ITestOutputHelper outputHelper)
     [Fact]
     public async Task Run()
     {
-        var run = await this._timeline.SetupRun(outputHelper).RunAsync();
+        var run = await this._timeline.SetupRun(outputHelper.WriteLine).RunAsync();
         run.EnsureRanToCompletion();
     }
 }
@@ -52,7 +52,7 @@ run.Step("hello").Should().HaveCompleted();
 run.Variable<int>("ExitCode").Should().Exist().And().Be(0);
 ```
 
-Both of those require the thing to have a name, which is what `.Name("hello")` on a step is for. Name
+Both of those require the thing to have a name, which is what `.Label("hello")` on a step is for. Name
 the steps you intend to assert on; leave the rest anonymous.
 
 ## The one call that decides the test

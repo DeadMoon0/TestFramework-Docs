@@ -16,7 +16,7 @@ dotnet add package TestFramework.Container.Azure
 | You have | Use |
 |---|---|
 | An existing Azure timeline and an explicit component graph | `DockerAzureEnvironment.For<TRootDefinition>()` |
-| One local Function App plus common bindings | the additive helpers: `ForFunctionApp<TFunctionApp>(...)`, `ForFunctionAppWithStorage<...>(...)`, `ForFunctionAppWithStorageAndServiceBus<...>(...)`, `ForFunctionAppWithCommonBindings<...>(...)` |
+| One local Function App plus common bindings | the additive helpers: `ForFunctionApp(identifier, source)`, `ForFunctionAppWithStorage<...>(...)`, `ForFunctionAppWithStorageAndServiceBus<...>(...)`, `ForFunctionAppWithStorageAndCosmos<...>(...)`, `ForFunctionAppWithCommonBindings<...>(...)` |
 | Live Azure resources, or Logic Apps | stay on `TestFramework.Azure` - Docker is deliberately a Container concern |
 
 ## What the environment does
@@ -43,8 +43,8 @@ The path is deliberately small:
 
 In the normal case the only runtime change is that `SetEnv(...)` call plus the definition class describing
 the emulator-backed graph. The placeholder values are logical identifiers - the environment rewrites them
-to real mapped endpoints during the run - and the packaged `example.local.testsettings.json` shows the
-expected shape for the `StorageAccount`, `CosmosDb`, `ServiceBus` and `SqlDatabase` sections.
+to real mapped endpoints during the run. The sections read are `StorageAccount`, `CosmosDb`, `ServiceBus` and
+`SqlDatabase`, as in `TestFramework.Azure`.
 
 Placeholders can be registered by the test project, or owned by the definition classes themselves when a
 shared test stack wants each component to describe its own shape.

@@ -29,6 +29,7 @@ One page each. Every package is additive: install it when a test needs what it d
 | [TestFramework.Web](packages/web.md) | REST APIs, SQL Server, stubbed dependencies |
 | [TestFramework.UI.Browser](packages/ui-browser.md) | a real browser driving a web application |
 | [TestFramework.Azure](packages/azure.md) | Function Apps, Logic Apps, Service Bus, Storage, Cosmos, SQL |
+| [TestFramework.Azure.Functions](packages/azure-functions.md) | Function App handlers run in-process, endpoints read from their attributes |
 | [TestFramework.Container](packages/container.md) | the shared Docker building blocks |
 | [TestFramework.Container.Web](packages/container-web.md) | the web stack, served from containers |
 | [TestFramework.Container.Azure](packages/container-azure.md) | Azure emulators in Docker |

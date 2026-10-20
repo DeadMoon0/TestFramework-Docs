@@ -32,12 +32,12 @@ ConfigInstance config = ConfigInstance.FromJsonFile("local.testsettings.json")
     .Build();
 
 Timeline timeline = Timeline.Create()
-    .SetVariable("itemId", Var.Const("2"))
-    .Trigger(WebExt.Api.IsLive("orders", ApiAlivenessLevel.Healthy)).Name("live")
+    .SetVariable("itemId", "2")
+    .Trigger(WebExt.Api.IsLive("orders", ApiAlivenessLevel.Healthy)).Label("live")
     .Trigger(WebExt.Api.Http("orders")
         .Get("api/items/{id}")
         .WithRouteValue("id", Var.Ref<string>("itemId"))
-        .Call()).Name("get-item")
+        .Call()).Label("get-item")
     .Build();
 
 TimelineRun run = await timeline.SetupRun(config).RunAsync();
@@ -56,13 +56,14 @@ against a container or a deployed environment with nothing changed but the envir
 than by the call you are actually testing:
 
 ```csharp
-.Trigger(WebExt.Api.IsLive("orders", ApiAlivenessLevel.Healthy)).Name("live")
+.Trigger(WebExt.Api.IsLive("orders", ApiAlivenessLevel.Healthy)).Label("live")
 // ...
 run.ApiProbe("live").Select(probe => probe.Success).Should().Be(true);
 ```
 
-`Reachable` proves the socket opened. `Healthy` proves the health path answered. They are different
-questions, and the framework declines to conflate them.
+`Reachable` proves the socket opened. `Healthy` proves the health path answered. `Authenticated` proves the
+configured credentials are accepted. They are different questions, and the framework declines to conflate
+them.
 
 ## A request is a step; a response is a result
 
@@ -72,8 +73,8 @@ lets one timeline run with many inputs:
 ```csharp
 .Trigger(WebExt.Api.Http("orders")
     .Post("api/orders")
-    .WithJsonBody(Var.Const(new { name = "Calibration Order", quantity = 3 }))
-    .Call()).Name("create")
+    .WithJsonBody(new { name = "Calibration Order", quantity = 3 })
+    .Call()).Label("create")
 ```
 
 And remember the rule from the previous page: a non-2xx status is a result you assert on, not an
@@ -86,9 +87,9 @@ teardown:
 
 ```csharp
 Timeline.Create()
-    .Trigger(WebExt.Sql.IsLive("orders-db", SqlAlivenessLevel.Database)).Name("live")
+    .Trigger(WebExt.Sql.IsLive("orders-db", SqlAlivenessLevel.Database)).Label("live")
     .SetupArtifact("seeded")
-    .Trigger(WebExt.Sql.Scalar<int>("orders-db", "SELECT COUNT(1) FROM [Orders]")).Name("count")
+    .Trigger(WebExt.Sql.Scalar<int>("orders-db", "SELECT COUNT(1) FROM [Orders]")).Label("count")
     .Build();
 
 // ...
@@ -104,7 +105,7 @@ A seeded row is owned, so teardown removes it.
 > deleted** when the run ends unless the step that found it says `MarkReadonly()`.
 >
 > Before pointing any timeline at data you did not create, read
-> [ownership lives on the reference](artifacts.md#teardown-deletes---unless-you-say-otherwise).
+> [teardown deletes - unless you say otherwise](artifacts.md#teardown-deletes---unless-you-say-otherwise).
 
 ## Two sources of truth beat one
 

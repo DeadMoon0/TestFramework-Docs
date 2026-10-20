@@ -10,7 +10,7 @@ An assertion needs a handle, and a handle needs a name:
 ```csharp
 private readonly Timeline _timeline = Timeline.Create()
     .Trigger(SimpleExt.Trigger.Message("Is anyone out there?"))
-        .Name("ping")
+        .Label("ping")
     .Build();
 
 // ...
@@ -46,7 +46,7 @@ for exactly that:
 Timeline.Create()
     .ForEach(["Alice", "Bob", "Charlie"], "item", loop =>
     {
-        loop.Trigger(SimpleExt.Trigger.Message(Var.Ref<string>("item"))).Name("greet");
+        loop.Trigger(SimpleExt.Trigger.Message(Var.Ref<string>("item"))).Label("greet");
     })
     .Build();
 

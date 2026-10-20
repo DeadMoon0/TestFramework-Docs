@@ -26,6 +26,7 @@ not before:
 | Drive a web application in a real browser | `TestFramework.UI.Browser` |
 | Host the system under test in-process with test doubles | `TestFramework.Mock` |
 | Talk to Azure components | `TestFramework.Azure` |
+| Run a Function App's HTTP handlers in-process | `TestFramework.Azure.Functions` |
 | Configure services and settings properly | `TestFramework.Config` |
 | Trigger small inline actions | `TestFramework.Simple` |
 | Run any of the above against Docker | `TestFramework.Container.Web`, `TestFramework.Container.Azure` |
@@ -51,7 +52,7 @@ public class SmokeTest(ITestOutputHelper output)
     {
         Timeline timeline = Timeline.Create().Build();
 
-        TimelineRun run = await timeline.SetupRun(output).RunAsync();
+        TimelineRun run = await timeline.SetupRun(output.WriteLine).RunAsync();
 
         run.EnsureRanToCompletion();
     }

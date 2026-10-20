@@ -27,7 +27,7 @@ A definition class describes the shape, once, in code rather than in a compose f
 ```csharp
 internal sealed class SampleSqlDefinition : DockerSqlDefinition
 {
-    public override SqlIdentifier Identifier => "main";
+    public override SqlIdentifier Identifier => "orders-db";
 
     protected override void Configure(DockerSqlBuilder builder) => builder
         .WithDatabase("SampleDb")
@@ -48,13 +48,13 @@ exist, and an application can only satisfy all four by being correct.
 private static readonly Timeline _timeline = Timeline.Create()
     .Trigger(WebExt.Api.Http("orders")
         .Post("api/orders")
-        .WithJsonBody(Var.Const(new { name = "Complete Order", quantity = 6 }))
-        .Call()).Name("create")
+        .WithJsonBody(new { name = "Complete Order", quantity = 6 })
+        .Call()).Label("create")
     .WaitForEvent(WebExt.Stub.Called("pricing", HttpMethod.Post, "/api/quotes"))
-        .WithTimeOut(TimeSpan.FromSeconds(30)).Name("quoted")
+        .WithTimeout(TimeSpan.FromSeconds(30)).Label("quoted")
     .FindArtifact("written", WebExt.ArtifactFinder.Sql.Where<ShowroomOrder>("orders-db", "Name = @name")
-        .WithParameter("name", Var.Const("Complete Order")))
-    .Trigger(WebExt.Stub.Calls("pricing")).Name("audit")
+        .WithParameter("name", "Complete Order"))
+    .Trigger(WebExt.Stub.Calls("pricing")).Label("audit")
     .Build();
 ```
 

@@ -34,6 +34,8 @@
     href: packages/ui-browser.md
   - name: TestFramework.Azure
     href: packages/azure.md
+  - name: TestFramework.Azure.Functions
+    href: packages/azure-functions.md
   - name: TestFramework.Container
     href: packages/container.md
   - name: TestFramework.Container.Web

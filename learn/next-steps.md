@@ -11,7 +11,7 @@ one page per package, and how-tos for the awkward parts.
 **"I want to see it working."** The [Examples](../examples/index.md) are runnable chapters with the
 output they actually produced. Each one has a copy-pasteable command for the single test.
 
-**"I need a signature."** The [API reference](../api/index.md) covers every public type in all eleven
+**"I need a signature."** The [API reference](../api/index.md) covers every public type in all twelve
 packages, with a link to the source of each one.
 
 ## The packages you have not met

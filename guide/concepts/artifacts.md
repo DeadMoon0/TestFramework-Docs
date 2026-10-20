@@ -50,8 +50,9 @@ would need, and none of them carries a policy opt-out of its own any more.
 |---|---|
 | `FileArtifactReference(path)` | yes |
 | `SqlRowArtifactReference` (web) | yes - a key value is required |
-| `SqlRowArtifactReference` (azure) | yes - a primary key is required |
-| `TableStorageEntityArtifactReference` | yes - table, partition key and row key are all required |
+| `SqlDatabaseRowArtifactReference` (azure) | yes - a primary key is required |
+| `StorageAccountTableEntityArtifactReference` | yes - table, partition key and row key are all required |
+| `StorageAccountBlobArtifactReference` | yes |
 | `CosmosDbItemArtifactReference` | only once it has both a partition key and an id |
 
 > [!WARNING]
@@ -81,7 +82,7 @@ A finder locates resources by criteria rather than by name:
 .FindArtifacts("foundFile", new FileArtifactFolderFinder(Var.Ref<string>("folder")))
 
 .FindArtifact("written", WebExt.ArtifactFinder.Sql.Where<ShowroomOrder>("orders-db", "Name = @name")
-    .WithParameter("name", Var.Const("Complete Order")))
+    .WithParameter("name", "Complete Order"))
 ```
 
 Results are named in the order found - `foundFile_0`, `foundFile_1` - so a discovery of unknown size

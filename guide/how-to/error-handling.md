@@ -21,7 +21,7 @@ specific name involved:
 
 ```csharp
 IOContractViolationException exception = await Assert.ThrowsAsync<IOContractViolationException>(() =>
-    timeline.SetupRun(outputHelper).RunAsync());
+    timeline.SetupRun(outputHelper.WriteLine).RunAsync());
 
 string formatted = exception.ToString();
 // contains "[FRAMEWORK ERROR]", "Recovery:", and "cmdCommand"
@@ -70,7 +70,7 @@ valuable as proving it succeeds.
 
 ## Habits that prevent most of it
 
-- **Bound every wait** with `WithTimeOut(...)`. The 10-minute default keeps a suite from hanging, but
+- **Bound every wait** with `WithTimeout(...)`. The 10-minute default keeps a suite from hanging, but
   it is a backstop; a wait that will never succeed should say so in seconds.
 - **Use `IsLive(...)` in front of a call against something that may still be starting**, so the startup
   error lands on the step designed to absorb it.

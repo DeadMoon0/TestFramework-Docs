@@ -5,11 +5,11 @@ runs a hundred different ways.
 
 ## A value known while authoring
 
-`Var.Const(...)` puts a literal into the plan:
+A plain value puts a literal into the plan:
 
 ```csharp
 Timeline timeline = Timeline.Create()
-    .SetVariable("greeting", Var.Const("Good morning"))
+    .SetVariable("greeting", "Good morning")
     .Build();
 ```
 
@@ -25,7 +25,7 @@ private readonly Timeline _timeline = Timeline.Create()
 [Fact]
 public async Task Run()
 {
-    var run = await this._timeline.SetupRun(outputHelper)
+    var run = await this._timeline.SetupRun(outputHelper.WriteLine)
         .AddVariable("cmdCommand", "Hello from Test via Var")
         .RunAsync();
 

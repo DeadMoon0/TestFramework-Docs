@@ -14,7 +14,7 @@ Timeline timeline = Timeline.Create()
     .UseRunDirectory()
     .Trigger(LocalIOExt.Trigger.Cmd(Var.Const("echo hello > out.txt")))
     .WaitForEvent(LocalIOExt.Events.FileExists(Var.Const("out.txt")))
-        .WithTimeOut(TimeSpan.FromSeconds(10))
+        .WithTimeout(TimeSpan.FromSeconds(10))
     .RegisterArtifact("outFile", LocalIOExt.Artifacts.FileRef(Var.Const("out.txt")))
     .Build();
 
